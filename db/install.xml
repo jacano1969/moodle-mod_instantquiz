@@ -1,24 +1,94 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/instantquiz/db" VERSION="20130207" COMMENT="XMLDB file for Moodle mod/instantquiz"
+<XMLDB PATH="mod/instantquiz/db" VERSION="20130208" COMMENT="XMLDB file for Moodle mod/instantquiz"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="instantquiz" COMMENT="Basic information about instantquiz">
+    <TABLE NAME="instantquiz" COMMENT="Basic information about instantquiz" NEXT="instantquiz_evaluation">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course"/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Course instantquiz activity belongs to" PREVIOUS="id" NEXT="name"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course instantquiz activity belongs to" PREVIOUS="id" NEXT="name"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="name field for moodle instances" PREVIOUS="course" NEXT="intro"/>
-        <FIELD NAME="intro" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" COMMENT="General introduction of the instantquiz activity" PREVIOUS="name" NEXT="introformat"/>
-        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)" PREVIOUS="intro" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="introformat" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="General introduction of the instantquiz activity" PREVIOUS="name" NEXT="introformat"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)" PREVIOUS="intro" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="introformat" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="instantquiz_evaluation" COMMENT="instantquiz_evaluation table retrofitted from MySQL" PREVIOUS="instantquiz" NEXT="instantquiz_question">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
+        <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" PREVIOUS="sortorder" NEXT="addinfo"/>
+        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="name"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="instantquiz" UNIQUE="false" FIELDS="instantquizid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="instantquiz_question" COMMENT="instantquiz_question table retrofitted from MySQL" PREVIOUS="instantquiz_evaluation" NEXT="instantquiz_feedback">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" NEXT="instantquizid"/>
+        <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="name"/>
+        <FIELD NAME="name" TYPE="int" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="sortorder" NEXT="question"/>
+        <FIELD NAME="question" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="questionformat"/>
+        <FIELD NAME="questionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="question" NEXT="options"/>
+        <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="questionformat" NEXT="addinfo"/>
+        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="options"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="instantquiz" UNIQUE="false" FIELDS="instantquizid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="instantquiz_feedback" COMMENT="instantquiz_feedback table retrofitted from MySQL" PREVIOUS="instantquiz_question" NEXT="instantquiz_answer">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
+        <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="feedback"/>
+        <FIELD NAME="feedback" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="sortorder" NEXT="feedbackformat"/>
+        <FIELD NAME="feedbackformat" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="feedback" NEXT="addinfo"/>
+        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="feedbackformat"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="instantquiz" UNIQUE="false" FIELDS="instantquizid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="instantquiz_answer" COMMENT="instantquiz_answer table retrofitted from MySQL" PREVIOUS="instantquiz_feedback">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
+        <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="timestarted"/>
+        <FIELD NAME="timestarted" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid" NEXT="timefinished"/>
+        <FIELD NAME="timefinished" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="timestarted" NEXT="attemptnumber"/>
+        <FIELD NAME="attemptnumber" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="timefinished" NEXT="overriden"/>
+        <FIELD NAME="overriden" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="attemptnumber" NEXT="answers"/>
+        <FIELD NAME="answers" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="overriden" NEXT="points"/>
+        <FIELD NAME="points" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="answers" NEXT="feedbacks"/>
+        <FIELD NAME="feedbacks" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="points" NEXT="addinfo"/>
+        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="feedbacks"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="instantquizuser" UNIQUE="false" FIELDS="instantquizid, userid, overriden"/>
       </INDEXES>
     </TABLE>
   </TABLES>

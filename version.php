@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Defines the version of instantquiz
  *
@@ -26,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2013020701;               // If version == 0 then module will not be installed
-$module->requires  = 2012120300;      // Requires this Moodle version
-$module->cron      = 0;               // Period for cron to check this module (secs)
+$module->version   = 2013020800;      
+$module->requires  = 2012120300;        // Requires Moodle 2.4
+$module->cron      = 0;                 // Period for cron to check this module (secs)
 $module->component = 'mod_instantquiz'; // To check on upgrade, that module sits in correct place

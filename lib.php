@@ -113,7 +113,11 @@ function instantquiz_delete_instance($id) {
         return false;
     }
 
-    // TODO Delete any dependent records here
+    // Delete any dependent records here
+    $DB->delete_records('instantquiz_answer', array('instantquizid' => $instantquiz->id));
+    $DB->delete_records('instantquiz_feedback', array('instantquizid' => $instantquiz->id));
+    $DB->delete_records('instantquiz_evaluation', array('instantquizid' => $instantquiz->id));
+    $DB->delete_records('instantquiz_question', array('instantquizid' => $instantquiz->id));
 
     $DB->delete_records('instantquiz', array('id' => $instantquiz->id));
 
@@ -307,4 +311,26 @@ function instantquiz_extend_navigation(navigation_node $navref, stdclass $course
  * @param navigation_node $instantquiznode {@link navigation_node}
  */
 function instantquiz_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $instantquiznode=null) {
+    global $PAGE;
+    if (!($cm = $PAGE->cm)) {
+        return;
+    }
+
+    // We want to add these new nodes after the Edit settings node, and before the
+    // Locally assigned roles node. Of course, both of those are controlled by capabilities.
+    $keys = $instantquiznode->get_children_key_list();
+    $beforekey = null;
+    $i = array_search('modedit', $keys);
+    if ($i === false and array_key_exists(0, $keys)) {
+        $beforekey = $keys[0];
+    } else if (array_key_exists($i + 1, $keys)) {
+        $beforekey = $keys[$i + 1];
+    }
+
+    if (has_capability('moodle/course:manageactivities', $cm->context)) {
+        $link = new moodle_url('/mod/instantquiz/manage.php', array('id' => $cm->id));
+        $node = navigation_node::create(get_string('manage', 'mod_instantquiz'), $link,
+                navigation_node::TYPE_SETTING);
+        $instantquiznode->add_node($node, $beforekey);
+    }
 }

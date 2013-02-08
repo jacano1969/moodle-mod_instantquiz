@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,7 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 
 /**
  * English strings for instantquiz
@@ -35,3 +33,14 @@ $string['instantquiz'] = 'instantquiz';
 $string['noinstantquizzes'] = 'There are no instances of Instant quiz module';
 $string['pluginadministration'] = 'instantquiz administration';
 $string['pluginname'] = 'instantquiz';
+$string['manage'] = 'Edit instant quiz';
+
+$string['defevaluationname'] = 'Criterion {$a}';
+$string['addevaluation'] = 'Add new evaluation criterion';
+$string['evaluation_name'] = 'Name';
+$string['evaluation_addinfo'] = 'Additional info';
+
+$string['deffeedback'] = 'Feedback {$a}';
+$string['addfeedback'] = 'Add new feedback';
+$string['feedback_preview'] = 'Feedback';
+$string['feedback_addinfo'] = 'Additional info';
