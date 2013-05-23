@@ -97,7 +97,7 @@ class instantquiz {
      * @return moodle_url
      */
     public function manage_link($params = array()) {
-        return new moodle_url('/mod/instantquiz/manage.php', array('id' => $this->cm->id) + $params);
+        return new moodle_url('/mod/instantquiz/manage.php', array('instantquizid' => $this->cm->id) + $params);
     }
 
     /**
