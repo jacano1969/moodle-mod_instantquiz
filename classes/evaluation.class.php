@@ -23,6 +23,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot. '/mod/instantquiz/classes/entity.class.php');
 
 /**
  * Contains information and useful functions to deal with one instantquiz evaluation criterion
@@ -31,64 +32,58 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_evaluation {
-    var $id;
-    var $sortorder;
+class instantquiz_evaluation extends instantquiz_entity {
     var $name;
     var $addinfo;
 
-    /** @var instantquiz reference to the instantquiz containing this evaluation criterion */
-    var $instantquiz;
-
     /**
-     * Retrieves all evaluation criteria from database
+     * Returns the name of DB table (used in functions get_all() and update() )
      *
-     * @param instantquiz $instantquiz
-     * @return array of instantquiz_evaluation
+     * @return string
      */
-    public static function get_all($instantquiz) {
-        global $DB;
-        $records = $DB->get_records('instantquiz_evaluation',
-                array('instantquizid' => $instantquiz->id),
-                'sortorder, id', '*');
-        $rv = array();
-        foreach ($records as $record) {
-            $rv[] = new instantquiz_evaluation($record, $instantquiz);
-        }
-        return $rv;
+    protected static function get_table_name() {
+        return 'instantquiz_evaluation';
     }
 
     /**
      * Creates an evaluation criterion with default name
      *
      * @param instantquiz $instantquiz
-     * @return instantquiz_evaluation
+     * @param stdClass $defaultvalues
+     * @return instantquiz_question
      */
-    public static function create_empty($instantquiz) {
-        $record = new stdClass();
-        $all = self::get_all($instantquiz);
-        $record->sortorder = 0;
-        foreach ($all as $ev) {
-            $record->sortorder = $ev->sortorder + 1;
+    public static function create($instantquiz, $defaultvalues = null) {
+        if (empty($defaultvalues)) {
+            $defaultvalues = new stdClass();
         }
-        $record->name = get_string('defevaluationname', 'mod_instantquiz', $record->sortorder + 1);
-        $evaluation = new instantquiz_evaluation($record, $instantquiz);
-        $evaluation->update();
-        return $evaluation;
+        if (!isset($defaultvalues->sortorder)) {
+            $all = self::get_all($instantquiz);
+            $defaultvalues->sortorder = count($all);
+        }
+        if (!isset($defaultvalues->name)) {
+            $defaultvalues->name = get_string('defevaluationname', 'mod_instantquiz', $defaultvalues->sortorder + 1);
+        }
+        $entity = new static($instantquiz, $defaultvalues);
+        $entity->update();
+        return $entity;
     }
 
     /**
-     * Constructor
+     * Constructor from DB record
      *
-     * @param stdClass $record
      * @param instantquiz $instantquiz
+     * @param stdClass $record
      */
-    protected function __construct($record, $instantquiz) {
+    protected function __construct($instantquiz, $record) {
         $this->instantquiz = $instantquiz;
         foreach ($record as $key => $value) {
-            if (property_exists($this, $key)) {
+            if (property_exists($this, $key) && $key !== 'addinfo') {
                 $this->$key = $value;
             }
+        }
+        $this->addinfo = new stdClass();
+        if (isset($record->addinfo) && ($addinfo = @json_decode($record->addinfo))) {
+            $this->addinfo = $addinfo;
         }
     }
 
@@ -101,13 +96,31 @@ class instantquiz_evaluation {
             'instantquizid' => $this->instantquiz->id,
             'sortorder' => $this->sortorder,
             'name' => $this->name,
-            'addinfo' => $this->addinfo
+            'addinfo' => json_encode($this->addinfo)
         );
         if ($this->id) {
             $record['id'] = $this->id;
-            $DB->update_record('instantquiz_evaluation', $record);
+            $DB->update_record($this->get_table_name(), $record);
         } else {
-            $this->id = $DB->insert_record('instantquiz_evaluation', $record);
+            $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
+    }
+
+    /**
+     * Returns truncated and simply formatted evaluation name to display on the manage page
+     *
+     * @return string
+     */
+    public function get_preview() {
+        return $this->name;
+    }
+
+    /**
+     * Returns truncated and simply formatted additional info text to display on the manage page
+     *
+     * @return string
+     */
+    public function get_addinfo_preview() {
+        return print_r($this->addinfo, true);
     }
 }

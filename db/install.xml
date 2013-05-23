@@ -40,10 +40,9 @@
     </TABLE>
     <TABLE NAME="instantquiz_question" COMMENT="instantquiz_question table retrofitted from MySQL" PREVIOUS="instantquiz_evaluation" NEXT="instantquiz_feedback">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" NEXT="instantquizid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
         <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="name"/>
-        <FIELD NAME="name" TYPE="int" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="sortorder" NEXT="question"/>
         <FIELD NAME="question" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="questionformat"/>
         <FIELD NAME="questionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="question" NEXT="options"/>
         <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="questionformat" NEXT="addinfo"/>

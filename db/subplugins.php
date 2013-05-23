@@ -15,16 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version of instantquiz
+ * Definition of sub-plugins
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$module->version   = 2013052300;
-$module->requires  = 2012120300;        // Requires Moodle 2.4
-$module->cron      = 0;                 // Period for cron to check this module (secs)
-$module->component = 'mod_instantquiz'; // To check on upgrade, that module sits in correct place
+$subplugins = array('instantquiztmpl'=>'mod/instantquiz/template');

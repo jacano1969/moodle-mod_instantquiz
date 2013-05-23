@@ -23,6 +23,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot. '/mod/instantquiz/classes/entity.class.php');
 
 /**
  * Contains information and useful functions to deal with one instantquiz feedback
@@ -31,65 +32,59 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_feedback {
-    var $id;
-    var $sortorder;
+class instantquiz_feedback extends instantquiz_entity {
     var $feedback;
-    var $feedback_format;
+    var $feedbackformat;
     var $addinfo;
 
-    /** @var instantquiz reference to the instantquiz containing this evaluation criterion */
-    var $instantquiz;
-
     /**
-     * Retrieves all feedbacks from database
+     * Returns the name of DB table (used in functions get_all() and update() )
      *
-     * @param instantquiz $instantquiz
-     * @return array of instantquiz_feedback
+     * @return string
      */
-    public static function get_all($instantquiz) {
-        global $DB;
-        $records = $DB->get_records('instantquiz_feedback',
-                array('instantquizid' => $instantquiz->id),
-                'sortorder, id', '*');
-        $rv = array();
-        foreach ($records as $record) {
-            $rv[] = new instantquiz_feedback($record, $instantquiz);
-        }
-        return $rv;
+    public static function get_table_name() {
+        return 'instantquiz_feedback';
     }
 
     /**
      * Creates a feedback with default text
      *
      * @param instantquiz $instantquiz
+     * @param stdClass $defaultvalues
      * @return instantquiz_feedback
      */
-    public static function create_empty($instantquiz) {
-        $record = new stdClass();
-        $all = self::get_all($instantquiz);
-        $record->sortorder = 0;
-        foreach ($all as $ev) {
-            $record->sortorder = $ev->sortorder + 1;
+    public static function create($instantquiz, $defaultvalues = null) {
+        if (empty($defaultvalues)) {
+            $defaultvalues = new stdClass();
         }
-        $record->feedback = get_string('deffeedback', 'mod_instantquiz', $record->sortorder + 1);
-        $feedback = new instantquiz_feedback($record, $instantquiz);
-        $feedback->update();
-        return $feedback;
+        if (!isset($defaultvalues->sortorder)) {
+            $all = self::get_all($instantquiz);
+            $defaultvalues->sortorder = count($all);
+        }
+        if (!isset($defaultvalues->feedback)) {
+            $defaultvalues->feedback = get_string('deffeedback', 'mod_instantquiz', $defaultvalues->sortorder + 1);
+        }
+        $entity = new static($instantquiz, $defaultvalues);
+        $entity->update();
+        return $entity;
     }
 
     /**
-     * Constructor
+     * Constructor from DB record
      *
-     * @param stdClass $record
      * @param instantquiz $instantquiz
+     * @param stdClass $record
      */
-    protected function __construct($record, $instantquiz) {
+    protected function __construct($instantquiz, $record) {
         $this->instantquiz = $instantquiz;
         foreach ($record as $key => $value) {
-            if (property_exists($this, $key)) {
+            if (property_exists($this, $key) && $key !== 'addinfo') {
                 $this->$key = $value;
             }
+        }
+        $this->addinfo = new stdClass();
+        if (!empty($record->addinfo) && $addinfo = @json_decode($record->addinfo)) {
+            $this->addinfo = $addinfo;
         }
     }
 
@@ -102,25 +97,33 @@ class instantquiz_feedback {
             'instantquizid' => $this->instantquiz->id,
             'sortorder' => $this->sortorder,
             'feedback' => $this->feedback,
-            'feedback_format' => $this->feedback_format,
-            'addinfo' => $this->addinfo
+            'feedbackformat' => $this->feedbackformat,
+            'addinfo' => json_encode($this->addinfo)
         );
         if ($this->id) {
             $record['id'] = $this->id;
-            $DB->update_record('instantquiz_feedback', $record);
+            $DB->update_record($this->get_table_name(), $record);
         } else {
-            $this->id = $DB->insert_record('instantquiz_feedback', $record);
+            $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
     }
 
     /**
-     * Returns truncated and simply formatted feedback text to display on
-     * the manage page
+     * Returns truncated and simply formatted feedback text to display on the manage page
      *
      * @return string
      */
     public function get_preview() {
-        return format_text($this->feedback, $this->feedback_format,
+        return format_text($this->feedback, $this->feedbackformat,
             array('context' => $this->instantquiz->get_context()));
+    }
+
+    /**
+     * Returns truncated and simply formatted additional info text to display on the manage page
+     *
+     * @return string
+     */
+    public function get_addinfo_preview() {
+        return print_r($this->addinfo, true);
     }
 }

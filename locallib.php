@@ -101,46 +101,60 @@ class instantquiz {
     }
 
     /**
-     * Returns all evaluations used in instantquiz
+     * Returns a classname (and loads the appropriate php class) for specified entity (question, feedback, evaluation)
+     *
+     * @param string $entitytype
+     * @return string|null
+     */
+    public function get_entity_class($entitytype) {
+        global $CFG;
+        if ($entitytype === 'question') {
+            require_once($CFG->dirroot. '/mod/instantquiz/classes/question.class.php');
+            return 'instantquiz_question';
+        } else if ($entitytype === 'feedback') {
+            require_once($CFG->dirroot. '/mod/instantquiz/classes/feedback.class.php');
+            return 'instantquiz_feedback';
+        } else if ($entitytype === 'evaluation') {
+            require_once($CFG->dirroot. '/mod/instantquiz/classes/evaluation.class.php');
+            return 'instantquiz_evaluation';
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Creates an empty entity (question, evaluation, feedback)
+     *
+     * @return instantquiz_entity
+     */
+    public function add_entity($entitytype) {
+        if ($classname = $this->get_entity_class($entitytype)) {
+            return $classname::create($this);
+        }
+        return null;
+    }
+
+    /**
+     * Returns all entities of specified type used in instantquiz
      *
      * @return array of instantquiz_evaluation
      */
-    public function get_evaluations() {
-        global $CFG;
-        require_once($CFG->dirroot. '/mod/instantquiz/classes/evaluation.class.php');
-        return instantquiz_evaluation::get_all($this);
+    public function get_entities($entitytype) {
+        if ($classname = $this->get_entity_class($entitytype)) {
+            return $classname::get_all($this);
+        }
+        return array();
     }
 
     /**
-     * Creates an evaluation criterion
-     *
-     * @return instantquiz_evaluation
-     */
-    public function add_evaluation() {
-        global $CFG;
-        require_once($CFG->dirroot. '/mod/instantquiz/classes/evaluation.class.php');
-        return instantquiz_evaluation::create_empty($this);
-    }
-
-    /**
-     * Returns all feedbacks used in instantquiz
+     * Returns one instance of entity used in instantquiz
      *
      * @return array of instantquiz_evaluation
      */
-    public function get_feedbacks() {
-        global $CFG;
-        require_once($CFG->dirroot. '/mod/instantquiz/classes/feedback.class.php');
-        return instantquiz_feedback::get_all($this);
-    }
-
-    /**
-     * Creates a feedback
-     *
-     * @return instantquiz_feedback
-     */
-    public function add_feedback() {
-        global $CFG;
-        require_once($CFG->dirroot. '/mod/instantquiz/classes/feedback.class.php');
-        return instantquiz_feedback::create_empty($this);
+    public function get_entity($entitytype, $entityid) {
+        if ($classname = $this->get_entity_class($entitytype)) {
+            return $classname::get($this, $entityid);
+        }
+        return null;
     }
 }

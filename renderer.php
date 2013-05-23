@@ -36,10 +36,20 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      */
     public function manage_menu(instantquiz $instantquiz, $selected) {
         $tabrows = array();
-        foreach (array('evaluations', 'questions', 'feedbacks') as $key) {
-            $tabrows[] = new tabobject($key, $instantquiz->manage_link(array('list' => $key)), $key  /* TODO string */);
+        foreach (array('evaluation', 'question', 'feedback') as $key) {
+            $tabrows[] = new tabobject($key, $instantquiz->manage_link(array('cmd' => 'list', 'entity' => $key)), $key  /* TODO string */);
         }
         return print_tabs(array($tabrows), $selected, NULL, NULL, true);
+    }
+
+    public function list_entities(instantquiz $instantquiz, $entitytype) {
+        if ($entitytype === 'question') {
+            return $this->list_questions($instantquiz);
+        } else if ($entitytype === 'evaluation') {
+            return $this->list_evaluations($instantquiz);
+        } else if ($entitytype === 'feedback') {
+            return $this->list_feedbacks($instantquiz);
+        }
     }
 
     /**
@@ -48,8 +58,8 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      * @param instantquiz $instantquiz
      * @return string
      */
-    public function list_evaluations(instantquiz $instantquiz) {
-        $all = $instantquiz->get_evaluations();
+    protected function list_evaluations(instantquiz $instantquiz) {
+        $all = $instantquiz->get_entities('evaluation');
         $output = '';
         $cnt = 0;
         if (count($all)) {
@@ -59,11 +69,11 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 get_string('evaluation_addinfo', 'mod_instantquiz'));
             $table->data = array();
             foreach ($all as $ev) {
-                $table->data[] = array(++$cnt, $ev->name, $ev->addinfo);
+                $table->data[] = array(++$cnt, $ev->get_preview(), $ev->get_addinfo_preview());
             }
             $output .= html_writer::table($table);
         }
-        $link = html_writer::link($instantquiz->manage_link(array('add' => 'evaluation')),
+        $link = html_writer::link($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'evaluation')),
                 get_string('addevaluation', 'mod_instantquiz'));
         $output .= html_writer::tag('div', $link);
         return $output;
@@ -71,12 +81,12 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
 
     /**
      * Renders html for feedbacks list on manage page
-     * 
+     *
      * @param instantquiz $instantquiz
      * @return string
      */
-    public function list_feedbacks(instantquiz $instantquiz) {
-        $all = $instantquiz->get_feedbacks();
+    protected function list_feedbacks(instantquiz $instantquiz) {
+        $all = $instantquiz->get_entities('feedback');
         $output = '';
         $cnt = 0;
         if (count($all)) {
@@ -86,12 +96,41 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 get_string('feedback_addinfo', 'mod_instantquiz'));
             $table->data = array();
             foreach ($all as $f) {
-                $table->data[] = array(++$cnt, $f->get_preview(), $f->addinfo);
+                $table->data[] = array(++$cnt, $f->get_preview(), $f->get_addinfo_preview());
             }
             $output .= html_writer::table($table);
         }
-        $link = html_writer::link($instantquiz->manage_link(array('add' => 'feedback')),
+        $link = html_writer::link($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'feedback')),
                 get_string('addfeedback', 'mod_instantquiz'));
+        $output .= html_writer::tag('div', $link);
+        return $output;
+    }
+
+    /**
+     * Renders html for questions list on manage page
+     *
+     * @param instantquiz $instantquiz
+     * @return string
+     */
+    protected function list_questions(instantquiz $instantquiz) {
+        $all = $instantquiz->get_entities('question');
+        $output = '';
+        $cnt = 0;
+        if (count($all)) {
+            $table = new html_table();
+            $table->head = array('#',
+                get_string('question_preview', 'mod_instantquiz'),
+                get_string('question_addinfo', 'mod_instantquiz'),
+                get_string('edit'));
+            $table->data = array();
+            foreach ($all as $q) {
+                $table->data[] = array(++$cnt, $q->get_preview(), $q->get_addinfo_preview(),
+                    html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'question', 'entityid' => $q->id)), get_string('edit')));
+            }
+            $output .= html_writer::table($table);
+        }
+        $link = html_writer::link($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'question')),
+                get_string('addquestion', 'mod_instantquiz'));
         $output .= html_writer::tag('div', $link);
         return $output;
     }

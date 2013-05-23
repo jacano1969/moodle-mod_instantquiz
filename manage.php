@@ -27,8 +27,9 @@ require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/locallib.php');
 
 $id = required_param('id', PARAM_INT); // course_module ID
-$list = optional_param('list', null, PARAM_ALPHA);
-$add = optional_param('add', null, PARAM_ALPHA);
+$cmd = optional_param('cmd', null, PARAM_ALPHA);
+$entity = optional_param('entity', null, PARAM_ALPHA);
+$entityid = optional_param('entityid', null, PARAM_INT);
 
 $cm = get_coursemodule_from_id('instantquiz', $id, 0, false, MUST_EXIST);
 //print_r($cm);
@@ -38,12 +39,10 @@ require_login($cm->course, true, $cm);
 $context = $instantquiz->get_context();
 require_capability('moodle/course:manageactivities', $context);
 
-if ($add === 'evaluation') {
-    $instantquiz->add_evaluation();
-    redirect($instantquiz->manage_link(array('list' => 'evaluations')));
-} else if ($add === 'feedback') {
-    $instantquiz->add_feedback();
-    redirect($instantquiz->manage_link(array('list' => 'feedbacks')));
+if ($cmd === 'add' && !empty($entity) && $instantquiz->add_entity($entity)) {
+    redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+} else if ($cmd === 'edit' && !empty($entity)) {
+    //redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
 }
 
 $PAGE->set_pagelayout('incourse'); // or admin?
@@ -53,12 +52,10 @@ $renderer = $PAGE->get_renderer('mod_instantquiz');
 
 echo $OUTPUT->header();
 
-echo $renderer->manage_menu($instantquiz, $list);
+echo $renderer->manage_menu($instantquiz, $entity);
 
-if ($list === 'evaluations') {
-    echo $renderer->list_evaluations($instantquiz);
-} else if ($list === 'feedbacks') {
-    echo $renderer->list_feedbacks($instantquiz);
+if ($cmd === 'list' && !empty($entity)) {
+    echo $renderer->list_entities($instantquiz, $entity);
 }
 
 echo $OUTPUT->footer();
