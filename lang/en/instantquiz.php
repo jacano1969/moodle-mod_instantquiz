@@ -32,7 +32,9 @@ $string['instantquizname_help'] = 'This name will appear in activities list on c
 $string['instantquiz'] = 'instantquiz';
 $string['noinstantquizzes'] = 'There are no instances of Instant quiz module';
 $string['pluginadministration'] = 'instantquiz administration';
-$string['pluginname'] = 'instantquiz';
+$string['pluginname'] = 'Instant quiz';
+$string['subplugintype_instantquiztmpl'] = 'Template';
+$string['subplugintype_instantquiztmpl_plural'] = 'Templates';
 $string['manage'] = 'Edit instant quiz';
 
 $string['defevaluationname'] = 'Criterion {$a}';

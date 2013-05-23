@@ -15,10 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is a one-line short description of the file
- *
- * You can have a rather longer description of the file as well,
- * if you like, and it can span multiple lines.
+ * List of all instances of mod_instantquiz in the course
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy

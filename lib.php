@@ -68,6 +68,7 @@ function instantquiz_add_instance(stdClass $instantquiz, mod_instantquiz_mod_for
     global $DB;
 
     $instantquiz->timecreated = time();
+    $instantquiz->timemodified = time();
 
     // TODO
 
@@ -332,5 +333,23 @@ function instantquiz_extend_settings_navigation(settings_navigation $settingsnav
         $node = navigation_node::create(get_string('manage', 'mod_instantquiz'), $link,
                 navigation_node::TYPE_SETTING);
         $instantquiznode->add_node($node, $beforekey);
+    }
+}
+
+/**
+ * Includes all instant quiz templates lib.php files
+ *
+ * @param string $classname if specified and class exists omits the next step (it's is already loaded)
+ */
+function instantquiz_include_tmpl_lib($classname = null) {
+    global $CFG;
+    require_once($CFG->dirroot.'/mod/instantquiz/templatebase.php');
+    if (!empty($classname) && class_exists($classname)) {
+        // nothing to do, file already included
+        return;
+    }
+    $subplugins = get_plugin_list('instantquiztmpl');
+    foreach ($subplugins as $pluginname => $dir) {
+        require_once($dir.'/lib.php');
     }
 }

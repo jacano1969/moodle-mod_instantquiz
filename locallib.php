@@ -36,6 +36,8 @@ class instantquiz {
     protected $record;
     /** @var stdClass|cm_info information about course module */
     protected $cm;
+    /** @var instantquiz_tmpl */
+    protected $template;
 
     /**
      * Constructor
@@ -65,6 +67,27 @@ class instantquiz {
      */
     public function get_context() {
         return context_module::instance($this->cm->id);
+    }
+
+    /**
+     * Returns the template object
+     *
+     * @return instantquiz_tmpl
+     */
+    public function get_template() {
+        global $CFG;
+        if (!isset($this->template)) {
+            require_once($CFG->dirroot.'/mod/instantquiz/templatebase.php');
+            if (!empty($this->record->template) &&
+                    class_exists($this->record->template) &&
+                    is_subclass_of($this->record->template, 'instantquiz_tmpl')) {
+                $classname = $this->record->template;
+            } else {
+                $classname = 'instantquiz_tmpl';
+            }
+            $this->template = new $classname($this);
+        }
+        return $this->template;
     }
 
     /**

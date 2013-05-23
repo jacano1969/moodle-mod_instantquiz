@@ -34,15 +34,12 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      * @param instantquiz $instantquiz
      * @return string
      */
-    public function manage_menu(instantquiz $instantquiz) {
-        $output = '';
-        $output .= html_writer::start_tag('ul', array('class' => 'manage-menu'));
+    public function manage_menu(instantquiz $instantquiz, $selected) {
+        $tabrows = array();
         foreach (array('evaluations', 'questions', 'feedbacks') as $key) {
-            $link = html_writer::link($instantquiz->manage_link(array('list' => $key)), $key /* TODO string */);
-            $output .= html_writer::tag('li', $link, array('class' => 'manage-menu-item'));
+            $tabrows[] = new tabobject($key, $instantquiz->manage_link(array('list' => $key)), $key  /* TODO string */);
         }
-        $output .= html_writer::end_tag('ul');
-        return $output;
+        return print_tabs(array($tabrows), $selected, NULL, NULL, true);
     }
 
     /**
@@ -54,6 +51,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     public function list_evaluations(instantquiz $instantquiz) {
         $all = $instantquiz->get_evaluations();
         $output = '';
+        $cnt = 0;
         if (count($all)) {
             $table = new html_table();
             $table->head = array('#',
@@ -61,7 +59,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 get_string('evaluation_addinfo', 'mod_instantquiz'));
             $table->data = array();
             foreach ($all as $ev) {
-                $table->data[] = array($ev->sortorder, $ev->name, $ev->addinfo);
+                $table->data[] = array(++$cnt, $ev->name, $ev->addinfo);
             }
             $output .= html_writer::table($table);
         }
@@ -80,6 +78,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     public function list_feedbacks(instantquiz $instantquiz) {
         $all = $instantquiz->get_feedbacks();
         $output = '';
+        $cnt = 0;
         if (count($all)) {
             $table = new html_table();
             $table->head = array('#',
@@ -87,7 +86,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 get_string('feedback_addinfo', 'mod_instantquiz'));
             $table->data = array();
             foreach ($all as $f) {
-                $table->data[] = array($f->sortorder, $f->get_preview(), $f->addinfo);
+                $table->data[] = array(++$cnt, $f->get_preview(), $f->addinfo);
             }
             $output .= html_writer::table($table);
         }

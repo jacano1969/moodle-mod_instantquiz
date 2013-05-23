@@ -53,7 +53,7 @@ $renderer = $PAGE->get_renderer('mod_instantquiz');
 
 echo $OUTPUT->header();
 
-echo $renderer->manage_menu($instantquiz);
+echo $renderer->manage_menu($instantquiz, $list);
 
 if ($list === 'evaluations') {
     echo $renderer->list_evaluations($instantquiz);
