@@ -60,15 +60,10 @@ abstract class instantquiz_entity {
      * Creates and saves a new instance, fills the properties with default values
      *
      * @param instantquiz $instantquiz
-     * @param stdClass $record
      * @return instantquiz_entity
      */
-    public static function create($instantquiz, $defaultvalues = null) {
-        if (empty($defaultvalues)) {
-            $defaultvalues = new stdClass();
-        }
-        unset($defaultvalues->id);
-        $entity = new static($instantquiz, $defaultvalues);
+    public static function create($instantquiz) {
+        $entity = new static($instantquiz, new stdClass());
         $entity->update();
         return $entity;
     }
@@ -117,7 +112,7 @@ abstract class instantquiz_entity {
      * @return instantquiz_entity
      */
     public static final function get($instantquiz, $id) {
-        $all = $this->get_all($instantquiz);
+        $all = static::get_all($instantquiz);
         if (isset($all[$id])) {
             return $all[$id];
         }

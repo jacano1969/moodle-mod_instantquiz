@@ -49,20 +49,13 @@ class instantquiz_evaluation extends instantquiz_entity {
      * Creates an evaluation criterion with default name
      *
      * @param instantquiz $instantquiz
-     * @param stdClass $defaultvalues
      * @return instantquiz_question
      */
-    public static function create($instantquiz, $defaultvalues = null) {
-        if (empty($defaultvalues)) {
-            $defaultvalues = new stdClass();
-        }
-        if (!isset($defaultvalues->sortorder)) {
-            $all = self::get_all($instantquiz);
-            $defaultvalues->sortorder = count($all);
-        }
-        if (!isset($defaultvalues->name)) {
-            $defaultvalues->name = get_string('defevaluationname', 'mod_instantquiz', $defaultvalues->sortorder + 1);
-        }
+    public static function create($instantquiz) {
+        $defaultvalues = new stdClass();
+        $all = self::get_all($instantquiz);
+        $defaultvalues->sortorder = count($all);
+        $defaultvalues->name = get_string('defevaluationname', 'mod_instantquiz', $defaultvalues->sortorder + 1);
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
         return $entity;

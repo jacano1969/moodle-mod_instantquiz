@@ -50,20 +50,13 @@ class instantquiz_feedback extends instantquiz_entity {
      * Creates a feedback with default text
      *
      * @param instantquiz $instantquiz
-     * @param stdClass $defaultvalues
      * @return instantquiz_feedback
      */
-    public static function create($instantquiz, $defaultvalues = null) {
-        if (empty($defaultvalues)) {
-            $defaultvalues = new stdClass();
-        }
-        if (!isset($defaultvalues->sortorder)) {
-            $all = self::get_all($instantquiz);
-            $defaultvalues->sortorder = count($all);
-        }
-        if (!isset($defaultvalues->feedback)) {
-            $defaultvalues->feedback = get_string('deffeedback', 'mod_instantquiz', $defaultvalues->sortorder + 1);
-        }
+    public static function create($instantquiz) {
+        $defaultvalues = new stdClass();
+        $all = self::get_all($instantquiz);
+        $defaultvalues->sortorder = count($all);
+        $defaultvalues->feedback = get_string('deffeedback', 'mod_instantquiz', $defaultvalues->sortorder + 1);
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
         return $entity;

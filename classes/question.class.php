@@ -79,23 +79,14 @@ class instantquiz_question extends instantquiz_entity {
      * Creates a question with default text
      *
      * @param instantquiz $instantquiz
-     * @param stdClass $defaultvalues
      * @return instantquiz_question
      */
-    public static function create($instantquiz, $defaultvalues = null) {
-        if (empty($defaultvalues)) {
-            $defaultvalues = new stdClass();
-        }
-        if (!isset($defaultvalues->sortorder)) {
-            $all = self::get_all($instantquiz);
-            $defaultvalues->sortorder = count($all);
-        }
-        if (!isset($defaultvalues->question)) {
-            $defaultvalues->question = get_string('defquestion', 'mod_instantquiz', $defaultvalues->sortorder + 1);
-        }
-        if (!isset($defaultvalues->questionformat)) {
-            $defaultvalues->questionformat = FORMAT_MOODLE;
-        }
+    public static function create($instantquiz) {
+        $defaultvalues = new stdClass();
+        $all = self::get_all($instantquiz);
+        $defaultvalues->sortorder = count($all);
+        $defaultvalues->question = get_string('defquestion', 'mod_instantquiz', $defaultvalues->sortorder + 1);
+        $defaultvalues->questionformat = FORMAT_MOODLE;
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
         return $entity;
