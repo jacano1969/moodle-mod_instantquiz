@@ -218,6 +218,15 @@ class instantquiz_instantquiz {
         return array();
     }
 
+    public function delete_entities($entitytype, $entityids) {
+        $all = $this->get_entities($entitytype);
+        foreach ($all as $id => &$entity) {
+            if (in_array($id, $entityids)) {
+                $entity->delete();
+            }
+        }
+    }
+
     /**
      * Returns one instance of entity used in instantquiz
      *

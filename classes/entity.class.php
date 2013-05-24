@@ -48,7 +48,7 @@ abstract class instantquiz_entity {
     abstract protected function __construct($instantquiz, $record);
 
     /**
-     * Returns the name of DB table (used in functions get_all() and update() )
+     * Returns the name of DB table (used in functions get_all(), delete() and update() )
      *
      * @return string
      */
@@ -72,6 +72,14 @@ abstract class instantquiz_entity {
      * Updates or creates entry in DB
      */
     abstract public function update();
+
+    /**
+     * Deletes a record and all related records from DB
+     */
+    public function delete() {
+        global $DB;
+        $DB->delete_records($this->get_table_name(), array('id' => $this->id));
+    }
 
     /**
      * Returns truncated and simply formatted entity text to display on the manage page

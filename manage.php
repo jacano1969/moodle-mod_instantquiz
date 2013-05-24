@@ -41,6 +41,9 @@ require_capability('moodle/course:manageactivities', $context);
 
 if ($cmd === 'add' && !empty($entity) && $instantquiz->add_entity($entity)) {
     redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+} else if ($cmd === 'delete' && !empty($entity) && !empty($entityids)) {
+    $instantquiz->delete_entities($entity, array_keys($entityids));
+    redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
 } else if ($cmd === 'edit' && !empty($entity)) {
     $entities = $instantquiz->get_entities($entity);
     if (!empty($entityids)) {
