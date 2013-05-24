@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Allows teacher to edit evaluations criteria for given instantquiz
+ * Allows teacher to edit given instantquiz
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
@@ -26,13 +26,13 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/locallib.php');
 
-$id = required_param('id', PARAM_INT); // course_module ID
+$id = required_param('cmid', PARAM_INT); // course_module ID
 $cmd = optional_param('cmd', null, PARAM_ALPHA);
 $entity = optional_param('entity', null, PARAM_ALPHA);
-$entityid = optional_param('entityid', null, PARAM_INT);
+$entityids = optional_param_array('entityid', array(), PARAM_INT);
 
 $cm = get_coursemodule_from_id('instantquiz', $id, 0, false, MUST_EXIST);
-//print_r($cm);
+
 $instantquiz = new instantquiz($cm);
 $PAGE->set_url($instantquiz->manage_link());
 require_login($cm->course, true, $cm);
@@ -42,20 +42,34 @@ require_capability('moodle/course:manageactivities', $context);
 if ($cmd === 'add' && !empty($entity) && $instantquiz->add_entity($entity)) {
     redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
 } else if ($cmd === 'edit' && !empty($entity)) {
-    //redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+    $entities = $instantquiz->get_entities($entity);
+    if (!empty($entityids)) {
+        // Edit only specified entities
+        $entities = array_intersect_key($entities, $entityids);
+    }
+    if (!empty($entities)) {
+        $formclass = $instantquiz->get_entity_edit_form_class($entity);
+        $form = new $formclass(null, $entities);
+        if ($form->is_cancelled()) {
+            redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+        } else if ($data = $form->get_data()) {
+            $instantquiz->update_entities($entity, $data);
+            redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+        }
+    }
 }
 
 $PAGE->set_pagelayout('incourse'); // or admin?
 $PAGE->set_title(format_string($instantquiz->name)); // TODO 2.5 replace with $cm->get_formatted_name()
 $PAGE->set_heading(format_string($COURSE->fullname, true, array('context' => $context)));
-$renderer = $PAGE->get_renderer('mod_instantquiz');
+$renderer = $instantquiz->get_renderer();
 
-echo $OUTPUT->header();
+echo $renderer->header();
 
-echo $renderer->manage_menu($instantquiz, $entity);
+echo $renderer->manage_instantquiz($instantquiz, $cmd, $entity, $entityids);
 
-if ($cmd === 'list' && !empty($entity)) {
-    echo $renderer->list_entities($instantquiz, $entity);
+if (!empty($form)) {
+    $form->display();
 }
 
-echo $OUTPUT->footer();
+echo $renderer->footer();

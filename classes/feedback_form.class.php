@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * class instantquiz_question_form
+ * class instantquiz_feedback_form
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
@@ -26,13 +26,13 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir. '/formslib.php');
 
 /**
- * Form for editing one question
+ * Form for editing one feedback
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_question_form extends moodleform {
+class instantquiz_feedback_form extends moodleform {
     var $entities;
     var $editoroptions;
     var $instantquiz;
@@ -46,7 +46,7 @@ class instantquiz_question_form extends moodleform {
         $mform = $this->_form;
         $this->entities = $this->_customdata;
         $mform->addElement('hidden', 'cmd', 'edit');
-        $mform->addElement('hidden', 'entity', 'question');
+        $mform->addElement('hidden', 'entity', 'feedback');
         $firstentity = reset($this->entities);
         $this->instantquiz = $firstentity->instantquiz;
         $mform->addElement('hidden', 'cmid', $this->instantquiz->get_cm()->id);
@@ -56,17 +56,17 @@ class instantquiz_question_form extends moodleform {
             'trusttext' => false, 'noclean' => true, 'context' => $context);
 
         $data = array(
-            'question_editor' => array(),
+            'feedback_editor' => array(),
         );
 
         foreach ($this->entities as &$entity) {
             $suffix = '['.$entity->id.']';
             $mform->addElement('hidden', 'entityid'. $suffix, 1);
 
-            $mform->addElement('editor','question_editor'. $suffix, get_string('question_preview', 'mod_instantquiz'), null, $this->editoroptions);
+            $mform->addElement('editor','feedback_editor'. $suffix, get_string('feedback_preview', 'mod_instantquiz'), null, $this->editoroptions);
 
-            $tmpdata = file_prepare_standard_editor($entity, 'question', $this->editoroptions, $context, 'mod_instantquiz', 'question', $entity->id);
-            $data['question_editor'][$entity->id] = $tmpdata->question_editor;
+            $tmpdata = file_prepare_standard_editor($entity, 'feedback', $this->editoroptions, $context, 'mod_instantquiz', 'feedback', $entity->id);
+            $data['feedback_editor'][$entity->id] = $tmpdata->feedback_editor;
         }
 
         $this->add_action_buttons(true, get_string('savechanges'));
@@ -87,10 +87,10 @@ class instantquiz_question_form extends moodleform {
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
-        // Question text can not be empty
-        foreach ($data['question_editor'] as $id => $question) {
-            if (!strlen(trim(strip_tags($question['text'], '<img>')))) {
-                $errors['question_editor['.$id.']'] = get_string('required');
+        // Feedback text can not be empty
+        foreach ($data['feedback_editor'] as $id => $feedback) {
+            if (!strlen(trim(strip_tags($feedback['text'], '<img>')))) {
+                $errors['feedback_editor['.$id.']'] = get_string('required');
             }
         }
         return $errors;
@@ -107,10 +107,10 @@ class instantquiz_question_form extends moodleform {
         $data = parent::get_data();
         if ($data !== null) {
             $context = $this->instantquiz->get_context();
-            foreach ($data->question_editor as $id => $question_editor) {
+            foreach ($data->feedback_editor as $id => $feedback_editor) {
                 // file_postupdate_standard_editor() can not work with arrays
-                $tmpdata = (object)array('question_editor' => $question_editor);
-                $tmpdata = file_postupdate_standard_editor($tmpdata, 'question', $this->editoroptions, $context, 'mod_instantquiz', 'question', $id);
+                $tmpdata = (object)array('feedback_editor' => $feedback_editor);
+                $tmpdata = file_postupdate_standard_editor($tmpdata, 'feedback', $this->editoroptions, $context, 'mod_instantquiz', 'feedback', $id);
                 foreach ($tmpdata as $key => $value) {
                     if (!isset($data->$key)) {
                         $data->$key = array();

@@ -329,7 +329,7 @@ function instantquiz_extend_settings_navigation(settings_navigation $settingsnav
     }
 
     if (has_capability('moodle/course:manageactivities', $cm->context)) {
-        $link = new moodle_url('/mod/instantquiz/manage.php', array('instantquizid' => $cm->id));
+        $link = new moodle_url('/mod/instantquiz/manage.php', array('cmid' => $cm->id));
         $node = navigation_node::create(get_string('manage', 'mod_instantquiz'), $link,
                 navigation_node::TYPE_SETTING);
         $instantquiznode->add_node($node, $beforekey);

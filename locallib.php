@@ -70,6 +70,15 @@ class instantquiz {
     }
 
     /**
+     * Returns the course module object used in constructor
+     *
+     * @return stdClass|cm_info
+     */
+    public function get_cm() {
+        return $this->cm;
+    }
+
+    /**
      * Returns the template object
      *
      * @return instantquiz_tmpl
@@ -97,7 +106,7 @@ class instantquiz {
      * @return moodle_url
      */
     public function manage_link($params = array()) {
-        return new moodle_url('/mod/instantquiz/manage.php', array('instantquizid' => $this->cm->id) + $params);
+        return new moodle_url('/mod/instantquiz/manage.php', array('cmid' => $this->cm->id) + $params);
     }
 
     /**
@@ -119,6 +128,50 @@ class instantquiz {
             return 'instantquiz_evaluation';
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Returns a classname (and loads the appropriate php class) for specified entity edit form (question, feedback, evaluation)
+     *
+     * @param string $entitytype
+     * @return string|null
+     */
+    public function get_entity_edit_form_class($entitytype) {
+        global $CFG;
+        if ($entitytype === 'question') {
+            require_once($CFG->dirroot. '/mod/instantquiz/classes/question_form.class.php');
+            return 'instantquiz_question_form';
+        } else if ($entitytype === 'feedback') {
+            require_once($CFG->dirroot. '/mod/instantquiz/classes/feedback_form.class.php');
+            return 'instantquiz_feedback_form';
+        } else if ($entitytype === 'evaluation') {
+            require_once($CFG->dirroot. '/mod/instantquiz/classes/evaluation_form.class.php');
+            return 'instantquiz_evaluation_form';
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Updates multiple entities with the results of the corresponding form
+     *
+     * @param string $entitytype
+     * @param stdClass $data the data from moodleform::get_data(), see get_entity_edit_form_class()
+     *    for a class name responsible for the entity edit form
+     */
+    public function update_entities($entitytype, $data) {
+        $entities = $this->get_entities($entitytype);
+        foreach ($entities as $id => &$entity) {
+            if (!empty($data->entityid[$id])) {
+                // this entity could have beed modified
+                foreach ($data as $key => $subdata) {
+                    if (is_array($subdata) && isset($subdata[$id]) && property_exists($entity, $key)) {
+                        $entity->$key = $subdata[$id];
+                    }
+                }
+                $entity->update();
+            }
         }
     }
 
@@ -156,5 +209,15 @@ class instantquiz {
             return $classname::get($this, $entityid);
         }
         return null;
+    }
+
+    /**
+     * Returns the renderer instance
+     *
+     * @return plugin_renderer_base
+     */
+    public function get_renderer() {
+        global $PAGE;
+        return $PAGE->get_renderer('mod_instantquiz');
     }
 }
