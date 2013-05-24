@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Contains information and useful functions to deal with one instantquiz entity (evaluation, question, feedback)
+ * Contains information and useful functions to deal with one instantquiz entity (criterion, question, feedback)
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy

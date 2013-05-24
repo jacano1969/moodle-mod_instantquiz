@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * class instantquiz_evaluation_form
+ * class instantquiz_criterion_form
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
@@ -32,7 +32,7 @@ require_once($CFG->libdir. '/formslib.php');
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_evaluation_form extends moodleform {
+class instantquiz_criterion_form extends moodleform {
     var $entities;
     var $instantquiz;
 
@@ -43,22 +43,22 @@ class instantquiz_evaluation_form extends moodleform {
         $mform = $this->_form;
         $this->entities = $this->_customdata;
         $mform->addElement('hidden', 'cmd', 'edit');
-        $mform->addElement('hidden', 'entity', 'evaluation');
+        $mform->addElement('hidden', 'entity', 'criterion');
         $firstentity = reset($this->entities);
         $this->instantquiz = $firstentity->instantquiz;
         $mform->addElement('hidden', 'cmid', $this->instantquiz->get_cm()->id);
 
         $data = array(
-            'name' => array(),
+            'criterion' => array(),
         );
 
         foreach ($this->entities as &$entity) {
             $suffix = '['.$entity->id.']';
             $mform->addElement('hidden', 'entityid'. $suffix, 1);
 
-            $mform->addElement('text','name'. $suffix, get_string('evaluation_name', 'mod_instantquiz'));
-            $mform->addRule('name'. $suffix, get_string('required'), 'required', null, 'client');
-            $data['name'][$entity->id] = $entity->name;
+            $mform->addElement('text','criterion'. $suffix, get_string('criterion_name', 'mod_instantquiz'));
+            $mform->addRule('criterion'. $suffix, get_string('required'), 'required', null, 'client');
+            $data['criterion'][$entity->id] = $entity->criterion;
         }
 
         $this->add_action_buttons(true, get_string('savechanges'));

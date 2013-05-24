@@ -37,10 +37,10 @@ $string['subplugintype_instantquiztmpl'] = 'Template';
 $string['subplugintype_instantquiztmpl_plural'] = 'Templates';
 $string['manage'] = 'Edit instant quiz';
 
-$string['defevaluationname'] = 'Criterion {$a}';
-$string['addevaluation'] = 'Add new evaluation criterion';
-$string['evaluation_name'] = 'Name';
-$string['evaluation_addinfo'] = 'Additional info';
+$string['defcriterionname'] = 'Criterion {$a}';
+$string['addcriterion'] = 'Add new evaluation criterion';
+$string['criterion_name'] = 'Name';
+$string['criterion_addinfo'] = 'Additional info';
 
 $string['deffeedback'] = 'Feedback {$a}';
 $string['addfeedback'] = 'Add new feedback';

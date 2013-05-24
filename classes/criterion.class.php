@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * class instantquiz_evaluation
+ * class instantquiz_criterion
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
@@ -32,8 +32,8 @@ require_once($CFG->dirroot. '/mod/instantquiz/classes/entity.class.php');
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_evaluation extends instantquiz_entity {
-    var $name;
+class instantquiz_criterion extends instantquiz_entity {
+    var $criterion;
     var $addinfo;
 
     /**
@@ -42,7 +42,7 @@ class instantquiz_evaluation extends instantquiz_entity {
      * @return string
      */
     protected static function get_table_name() {
-        return 'instantquiz_evaluation';
+        return 'instantquiz_criterion';
     }
 
     /**
@@ -55,7 +55,7 @@ class instantquiz_evaluation extends instantquiz_entity {
         $defaultvalues = new stdClass();
         $all = self::get_all($instantquiz);
         $defaultvalues->sortorder = count($all);
-        $defaultvalues->name = get_string('defevaluationname', 'mod_instantquiz', $defaultvalues->sortorder + 1);
+        $defaultvalues->criterion = get_string('defcriterionname', 'mod_instantquiz', $defaultvalues->sortorder + 1);
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
         return $entity;
@@ -88,7 +88,7 @@ class instantquiz_evaluation extends instantquiz_entity {
         $record = array(
             'instantquizid' => $this->instantquiz->id,
             'sortorder' => $this->sortorder,
-            'name' => $this->name,
+            'criterion' => $this->criterion,
             'addinfo' => json_encode($this->addinfo)
         );
         if ($this->id) {
@@ -100,12 +100,12 @@ class instantquiz_evaluation extends instantquiz_entity {
     }
 
     /**
-     * Returns truncated and simply formatted evaluation name to display on the manage page
+     * Returns truncated and simply formatted criterion name to display on the manage page
      *
      * @return string
      */
     public function get_preview() {
-        return $this->name;
+        return $this->criterion;
     }
 
     /**

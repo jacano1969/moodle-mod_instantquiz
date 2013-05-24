@@ -136,7 +136,7 @@ class instantquiz_instantquiz {
         // Delete any dependent records here
         $DB->delete_records('instantquiz_answer', array('instantquizid' => $this->record->id));
         $DB->delete_records('instantquiz_feedback', array('instantquizid' => $this->record->id));
-        $DB->delete_records('instantquiz_evaluation', array('instantquizid' => $this->record->id));
+        $DB->delete_records('instantquiz_criterion', array('instantquizid' => $this->record->id));
         $DB->delete_records('instantquiz_question', array('instantquizid' => $this->record->id));
 
         $DB->delete_records('instantquiz', array('id' => $this->record->id));
@@ -245,7 +245,7 @@ class instantquiz_instantquiz {
     }
 
     /**
-     * Returns a classname (and loads the appropriate php file) for specified entity (question, feedback, evaluation)
+     * Returns a classname (and loads the appropriate php file) for specified entity (question, feedback, criterion)
      *
      * @param string $entitytype
      * @return string|null
@@ -255,7 +255,7 @@ class instantquiz_instantquiz {
     }
 
     /**
-     * Returns a classname (and loads the appropriate php file) for specified entity edit form (question, feedback, evaluation)
+     * Returns a classname (and loads the appropriate php file) for specified entity edit form (question, feedback, criterion)
      *
      * @param string $entitytype
      * @return string|null
@@ -287,7 +287,7 @@ class instantquiz_instantquiz {
     }
 
     /**
-     * Creates an empty entity (question, evaluation, feedback)
+     * Creates an empty entity (question, criterion, feedback)
      *
      * @return instantquiz_entity
      */
@@ -301,7 +301,7 @@ class instantquiz_instantquiz {
     /**
      * Returns all entities of specified type used in instantquiz
      *
-     * @return array of instantquiz_evaluation
+     * @return array of instantquiz_criterion
      */
     public function get_entities($entitytype) {
         if ($classname = $this->get_entity_class($entitytype)) {
@@ -328,7 +328,7 @@ class instantquiz_instantquiz {
     /**
      * Returns one instance of entity used in instantquiz
      *
-     * @return array of instantquiz_evaluation
+     * @return array of instantquiz_criterion
      */
     public function get_entity($entitytype, $entityid) {
         if ($classname = $this->get_entity_class($entitytype)) {

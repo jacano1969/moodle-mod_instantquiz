@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="instantquiz" COMMENT="Basic information about instantquiz" NEXT="instantquiz_evaluation">
+    <TABLE NAME="instantquiz" COMMENT="Basic information about instantquiz" NEXT="instantquiz_criterion">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course instantquiz activity belongs to" PREVIOUS="id" NEXT="name"/>
@@ -23,13 +23,13 @@
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="instantquiz_evaluation" COMMENT="instantquiz_evaluation table retrofitted from MySQL" PREVIOUS="instantquiz" NEXT="instantquiz_question">
+    <TABLE NAME="instantquiz_criterion" COMMENT="Criteria for calculating points in instantquiz" PREVIOUS="instantquiz" NEXT="instantquiz_question">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
         <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
-        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" PREVIOUS="sortorder" NEXT="addinfo"/>
-        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="name"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="criterion"/>
+        <FIELD NAME="criterion" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" PREVIOUS="sortorder" NEXT="addinfo"/>
+        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="criterion"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -38,7 +38,7 @@
         <INDEX NAME="instantquiz" UNIQUE="false" FIELDS="instantquizid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="instantquiz_question" COMMENT="instantquiz_question table retrofitted from MySQL" PREVIOUS="instantquiz_evaluation" NEXT="instantquiz_feedback">
+    <TABLE NAME="instantquiz_question" COMMENT="instantquiz_question table retrofitted from MySQL" PREVIOUS="instantquiz_criterion" NEXT="instantquiz_feedback">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
         <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>

@@ -48,8 +48,8 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
         if ($cmd === 'list') {
             if ($entitytype === 'question') {
                 $output .= $this->list_questions($instantquiz);
-            } else if ($entitytype === 'evaluation') {
-                $output .= $this->list_evaluations($instantquiz);
+            } else if ($entitytype === 'criterion') {
+                $output .= $this->list_criterions($instantquiz);
             } else if ($entitytype === 'feedback') {
                 $output .= $this->list_feedbacks($instantquiz);
             }
@@ -67,7 +67,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
         $cmd = optional_param('cmd', null, PARAM_ALPHA);
         $entity = optional_param('entity', null, PARAM_ALPHA);
         $tabrows = array();
-        foreach (array('evaluation', 'question', 'feedback') as $key) {
+        foreach (array('criterion', 'question', 'feedback') as $key) {
             $linkedwhenselected = ($cmd !== 'list');
             $tabrows[] = new tabobject($key, $instantquiz->manage_link(array('cmd' => 'list', 'entity' => $key)), $key  /* TODO string */,
                     '', $linkedwhenselected);
@@ -76,34 +76,34 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders html for evaluations list on manage page
+     * Renders html for criteria list on manage page
      *
      * @param instantquiz_instantquiz $instantquiz
      * @return string
      */
-    public function list_evaluations($instantquiz) {
-        $all = $instantquiz->get_entities('evaluation');
+    public function list_criterions($instantquiz) {
+        $all = $instantquiz->get_entities('criterion');
         $output = '';
         $cnt = 0;
         if (count($all)) {
             $table = new html_table();
             $table->head = array('#',
-                get_string('evaluation_name', 'mod_instantquiz'),
-                get_string('evaluation_addinfo', 'mod_instantquiz'),
+                get_string('criterion_name', 'mod_instantquiz'),
+                get_string('criterion_addinfo', 'mod_instantquiz'),
                 get_string('edit'),
                 get_string('delete'));
             $table->data = array();
             foreach ($all as $e) {
                 $table->data[] = array(++$cnt, $e->get_preview(), $e->get_addinfo_preview(),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'evaluation', 'entityid['.$e->id.']' => 1)), get_string('edit')),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'evaluation', 'entityid['.$e->id.']' => 1)), get_string('delete')));
+                    html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('edit')),
+                    html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('delete')));
             }
             $output .= html_writer::table($table);
-            $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'evaluation')),
+            $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'criterion')),
                     get_string('edit'));
         }
-        $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'evaluation')),
-                get_string('addevaluation', 'mod_instantquiz'));
+        $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'criterion')),
+                get_string('addcriterion', 'mod_instantquiz'));
         return $output;
     }
 
