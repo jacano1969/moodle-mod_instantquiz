@@ -24,6 +24,7 @@
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
+require_once(dirname(__FILE__).'/locallib.php');
 
 $id = required_param('id', PARAM_INT);   // course
 
@@ -44,40 +45,43 @@ $PAGE->set_heading(format_string($course->fullname));
 
 echo $OUTPUT->header();
 
-//TODO use get_fast_modinfo
-if (! $instantquizzes = get_all_instances_in_course('instantquiz', $course)) {
+$modinfo = get_fast_modinfo($course);
+if (empty($modinfo->instances['instantquiz'])) {
     notice(get_string('noinstantquizzes', 'instantquiz'), new moodle_url('/course/view.php', array('id' => $course->id)));
 }
 
 $table = new html_table();
-if ($course->format == 'weeks') {
-    $table->head  = array(get_string('week'), get_string('name'));
+$usesections = course_format_uses_sections($course->format);
+if ($usesections) {
+    $strsectionname  = get_string('sectionname', 'format_'.$course->format);
+    $table->head  = array($strsectionname, get_string('name'));
     $table->align = array('center', 'left');
-} else if ($course->format == 'topics') {
-    $table->head  = array(get_string('topic'), get_string('name'));
-    $table->align = array('center', 'left', 'left', 'left');
 } else {
     $table->head  = array(get_string('name'));
-    $table->align = array('left', 'left', 'left');
+    $table->align = array('left');
 }
 
-foreach ($instantquizzes as $instantquiz) {
-    if (!$instantquiz->visible) {
-        $link = html_writer::link(
-            new moodle_url('/mod/instantquiz/view.php', array('id' => $instantquiz->coursemodule)),
-            format_string($instantquiz->name, true),
-            array('class' => 'dimmed'));
-    } else {
-        $link = html_writer::link(
-            new moodle_url('/mod/instantquiz/view.php', array('id' => $instantquiz->coursemodule)),
-            format_string($instantquiz->name, true));
+$cms = $modinfo->instances['instantquiz'];
+$currentsection = '';
+foreach ($cms as $cm) {
+    $class = $cm->visible ? null : array('class' => 'dimmed'); // hidden modules are dimmed
+    $link = html_writer::link(
+        new moodle_url('/mod/instantquiz/view.php', array('id' => $cm->id)),
+        format_string($cm->name, true),
+        $class);
+
+    $tabledata = array();
+    if ($usesections) {
+        if ($cm->sectionnum !== $currentsection) {
+            $tabledata[] = get_section_name($course, $cm->sectionnum);
+            $currentsection = $cm->sectionnum;
+        } else {
+            $tabledata[] = '';
+        }
     }
 
-    if ($course->format == 'weeks' or $course->format == 'topics') {
-        $table->data[] = array($instantquiz->section, $link);
-    } else {
-        $table->data[] = array($link);
-    }
+    $tabledata[] = $link;
+    $table->data[] = $tabledata;
 }
 
 echo $OUTPUT->heading($strplural, 2);

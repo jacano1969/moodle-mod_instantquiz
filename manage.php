@@ -24,16 +24,16 @@
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
-require_once(dirname(__FILE__).'/classes/instantquiz.class.php');
+require_once(dirname(__FILE__).'/locallib.php');
 
 $id = required_param('cmid', PARAM_INT); // course_module ID
 $cmd = optional_param('cmd', null, PARAM_ALPHA);
 $entity = optional_param('entity', null, PARAM_ALPHA);
 $entityids = optional_param_array('entityid', array(), PARAM_INT);
 
-$cm = get_coursemodule_from_id('instantquiz', $id, 0, false, MUST_EXIST);
+$instantquiz = instantquiz_get_instantquiz($id);
+$cm = $instantquiz->get_cm();
 
-$instantquiz = new instantquiz_instantquiz($cm);
 $PAGE->set_url($instantquiz->manage_link());
 require_login($cm->course, true, $cm);
 $context = $instantquiz->get_context();
@@ -61,7 +61,7 @@ if ($cmd === 'add' && !empty($entity) && $instantquiz->add_entity($entity)) {
 
 $PAGE->set_pagelayout('incourse'); // or admin?
 $PAGE->set_title(format_string($instantquiz->name)); // TODO 2.5 replace with $cm->get_formatted_name()
-$PAGE->set_heading(format_string($COURSE->fullname, true, array('context' => $context)));
+$PAGE->set_heading(format_string($PAGE->course->fullname, true, array('context' => $context)));
 $renderer = $instantquiz->get_renderer();
 
 echo $renderer->header();
