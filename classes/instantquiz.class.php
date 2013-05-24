@@ -53,6 +53,83 @@ class instantquiz_instantquiz {
     }
 
     /**
+     * Saves a new instance of the instantquiz into the database
+     *
+     * Given an object containing all the necessary data,
+     * (defined by the form in mod_form.php) this function
+     * will create a new instance and return the id number
+     * of the new instance.
+     *
+     * @param stdClass $data An object from the form in mod_form.php
+     * @param mod_instantquiz_mod_form $mform
+     * @return int The id of the newly inserted instantquiz record
+     */
+    public static function create(stdClass $data, mod_instantquiz_mod_form $mform = null) {
+        global $DB;
+
+        $data->timecreated = time();
+        $data->timemodified = time();
+
+        // TODO
+
+        return $DB->insert_record('instantquiz', $data);
+    }
+
+    /**
+     * Updates an instance of the instantquiz in the database
+     *
+     * Given an object containing all the necessary data,
+     * (defined by the form in mod_form.php) this function
+     * will update an existing instance with new data.
+     *
+     * @param stdClass $data An object from the form in mod_form.php
+     * @param mod_instantquiz_mod_form $mform
+     * @return boolean Success/Fail
+     */
+    public function update(stdClass $data, mod_instantquiz_mod_form $mform = null, $previoustemplate = false) {
+        global $DB;
+
+        // Check if the template is changed
+        if ($data->template !== $this->record->template) {
+            $DB->update_record('instantquiz', array('id' => $this->record->id, 'template' => $data->template));
+            $newobject = instantquiz_get_instantquiz($this->cm);
+            $newobject->update($data, $mform, $this->record->template);
+            // When overwriting include here deleting of template-specific data
+            return true;
+        }
+
+        $data->timemodified = time();
+
+        // TODO
+
+        return $DB->update_record('instantquiz', $data);
+    }
+
+    /**
+     * Removes an instance of the instantquiz from the database
+     *
+     * Given an ID of an instance of this module,
+     * this function will permanently delete the instance
+     * and any data that depends on it.
+     *
+     * @param int $id Id of the module instance
+     * @return boolean Success/Failure
+     */
+    public function delete() {
+        global $DB;
+
+        // Delete any dependent records here
+        $DB->delete_records('instantquiz_answer', array('instantquizid' => $this->record->id));
+        $DB->delete_records('instantquiz_feedback', array('instantquizid' => $this->record->id));
+        $DB->delete_records('instantquiz_evaluation', array('instantquizid' => $this->record->id));
+        $DB->delete_records('instantquiz_question', array('instantquizid' => $this->record->id));
+
+        $DB->delete_records('instantquiz', array('id' => $this->record->id));
+
+        return true;
+    }
+
+    /**
      * Magic method to get instantquiz properties
      *
      * @param string $name
@@ -108,7 +185,7 @@ class instantquiz_instantquiz {
      * If it fails, tries to locate the class instantquiz_[classsuffix]
      * in file /mod/instantquiz/template/classes/[classsuffix].class.php
      * If neither is found returns null
-     * 
+     *
      * @param string $template full frankenstyle name of the instantquiztmpl plugin
      * @param string $classsuffix
      * @return string|null
@@ -131,7 +208,7 @@ class instantquiz_instantquiz {
         }
 
         if (strlen($template)) {
-            $filepath = $CFG->dirroot.'/mod/instantquiz/template/'. 
+            $filepath = $CFG->dirroot.'/mod/instantquiz/template/'.
                     preg_replace('/^instantquiztmpl_/', '', $template).
                     '/classes/'.$classsuffix.'.class.php';
             if (file_exists($filepath)) {
@@ -218,6 +295,12 @@ class instantquiz_instantquiz {
         return array();
     }
 
+    /**
+     * Delete entities
+     *
+     * @param string $entitytype
+     * @param array $entityids
+     */
     public function delete_entities($entitytype, $entityids) {
         $all = $this->get_entities($entitytype);
         foreach ($all as $id => &$entity) {

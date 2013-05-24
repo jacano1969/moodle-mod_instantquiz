@@ -60,19 +60,15 @@ function instantquiz_supports($feature) {
  * will create a new instance and return the id number
  * of the new instance.
  *
- * @param object $instantquiz An object from the form in mod_form.php
+ * @param stdClass $data An object from the form in mod_form.php
  * @param mod_instantquiz_mod_form $mform
  * @return int The id of the newly inserted instantquiz record
  */
-function instantquiz_add_instance(stdClass $instantquiz, mod_instantquiz_mod_form $mform = null) {
-    global $DB;
-
-    $instantquiz->timecreated = time();
-    $instantquiz->timemodified = time();
-
-    // TODO
-
-    return $DB->insert_record('instantquiz', $instantquiz);
+function instantquiz_add_instance(stdClass $data, mod_instantquiz_mod_form $mform = null) {
+    global $CFG;
+    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.class.php');
+    $classname = instantquiz_instantquiz::get_instantquiz_class($data->template);
+    return $classname::create($data, $mform);
 }
 
 /**
@@ -82,19 +78,16 @@ function instantquiz_add_instance(stdClass $instantquiz, mod_instantquiz_mod_for
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param object $instantquiz An object from the form in mod_form.php
+ * @param stdClass $data An object from the form in mod_form.php
  * @param mod_instantquiz_mod_form $mform
  * @return boolean Success/Fail
  */
-function instantquiz_update_instance(stdClass $instantquiz, mod_instantquiz_mod_form $mform = null) {
-    global $DB;
-
-    $instantquiz->timemodified = time();
-    $instantquiz->id = $instantquiz->instance;
-
-    // TODO
-
-    return $DB->update_record('instantquiz', $instantquiz);
+function instantquiz_update_instance(stdClass $data, mod_instantquiz_mod_form $mform = null) {
+    global $CFG;
+    require_once($CFG->dirroot.'/mod/instantquiz/locallib.php');
+    $data->id = $data->instance;
+    $instantquiz = instantquiz_get_instantquiz(null, $data->id);
+    return $instantquiz->update($data, $mform);
 }
 
 /**
@@ -108,21 +101,12 @@ function instantquiz_update_instance(stdClass $instantquiz, mod_instantquiz_mod_
  * @return boolean Success/Failure
  */
 function instantquiz_delete_instance($id) {
-    global $DB;
-
-    if (! $instantquiz = $DB->get_record('instantquiz', array('id' => $id))) {
-        return false;
+    global $CFG;
+    require_once($CFG->dirroot.'/mod/instantquiz/locallib.php');
+    if ($instantquiz = instantquiz_get_instantquiz(null, $id)) {
+        return $instantquiz->delete();
     }
-
-    // Delete any dependent records here
-    $DB->delete_records('instantquiz_answer', array('instantquizid' => $instantquiz->id));
-    $DB->delete_records('instantquiz_feedback', array('instantquizid' => $instantquiz->id));
-    $DB->delete_records('instantquiz_evaluation', array('instantquizid' => $instantquiz->id));
-    $DB->delete_records('instantquiz_question', array('instantquizid' => $instantquiz->id));
-
-    $DB->delete_records('instantquiz', array('id' => $instantquiz->id));
-
-    return true;
+    return false;
 }
 
 /**
