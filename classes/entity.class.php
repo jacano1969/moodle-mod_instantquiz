@@ -89,13 +89,6 @@ abstract class instantquiz_entity {
     abstract public function get_preview();
 
     /**
-     * Returns truncated and simply formatted additional info text to display on the manage page
-     *
-     * @return string
-     */
-    abstract public function get_addinfo_preview();
-
-    /**
      * Retrieves all entities from database
      *
      * @param instantquiz_instantquiz $instantquiz

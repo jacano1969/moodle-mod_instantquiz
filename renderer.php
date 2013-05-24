@@ -89,12 +89,11 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $table = new html_table();
             $table->head = array('#',
                 get_string('criterion_name', 'mod_instantquiz'),
-                get_string('criterion_addinfo', 'mod_instantquiz'),
                 get_string('edit'),
                 get_string('delete'));
             $table->data = array();
             foreach ($all as $e) {
-                $table->data[] = array(++$cnt, $e->get_preview(), $e->get_addinfo_preview(),
+                $table->data[] = array(++$cnt, $e->get_preview(),
                     html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('edit')),
                     html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('delete')));
             }
@@ -121,12 +120,11 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $table = new html_table();
             $table->head = array('#',
                 get_string('feedback_preview', 'mod_instantquiz'),
-                get_string('feedback_addinfo', 'mod_instantquiz'),
                 get_string('edit'),
                 get_string('delete'));
             $table->data = array();
             foreach ($all as $f) {
-                $table->data[] = array(++$cnt, $f->get_preview(), $f->get_addinfo_preview(),
+                $table->data[] = array(++$cnt, $f->get_preview(),
                     html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('edit')),
                     html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('delete')));
             }
@@ -153,12 +151,11 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $table = new html_table();
             $table->head = array('#',
                 get_string('question_preview', 'mod_instantquiz'),
-                get_string('question_addinfo', 'mod_instantquiz'),
                 get_string('edit'),
                 get_string('delete'));
             $table->data = array();
             foreach ($all as $q) {
-                $table->data[] = array(++$cnt, $q->get_preview(), $q->get_addinfo_preview(),
+                $table->data[] = array(++$cnt, $q->get_preview(),
                     html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('edit')),
                     html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('delete')));
             }

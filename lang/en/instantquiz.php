@@ -39,15 +39,12 @@ $string['manage'] = 'Edit instant quiz';
 
 $string['defcriterionname'] = 'Criterion {$a}';
 $string['addcriterion'] = 'Add new evaluation criterion';
-$string['criterion_name'] = 'Name';
-$string['criterion_addinfo'] = 'Additional info';
+$string['criterion_name'] = 'Criterion';
 
 $string['deffeedback'] = 'Feedback {$a}';
 $string['addfeedback'] = 'Add new feedback';
 $string['feedback_preview'] = 'Feedback';
-$string['feedback_addinfo'] = 'Additional info';
 
 $string['defquestion'] = 'Question {$a}';
 $string['addquestion'] = 'Add new question';
 $string['question_preview'] = 'Question';
-$string['question_addinfo'] = 'Additional info';

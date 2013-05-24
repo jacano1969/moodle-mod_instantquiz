@@ -75,7 +75,7 @@ class instantquiz_feedback extends instantquiz_entity {
                 $this->$key = $value;
             }
         }
-        $this->addinfo = new stdClass();
+        $this->addinfo = array();
         if (!empty($record->addinfo) && $addinfo = @json_decode($record->addinfo)) {
             $this->addinfo = $addinfo;
         }
@@ -109,14 +109,5 @@ class instantquiz_feedback extends instantquiz_entity {
     public function get_preview() {
         return format_text($this->feedback, $this->feedbackformat,
             array('context' => $this->instantquiz->get_context()));
-    }
-
-    /**
-     * Returns truncated and simply formatted additional info text to display on the manage page
-     *
-     * @return string
-     */
-    public function get_addinfo_preview() {
-        return print_r($this->addinfo, true);
     }
 }

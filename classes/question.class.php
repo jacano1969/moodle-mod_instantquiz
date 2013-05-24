@@ -69,7 +69,7 @@ class instantquiz_question extends instantquiz_entity {
                 }
             }
         }
-        $this->addinfo = new stdClass();
+        $this->addinfo = array();
         if (isset($record['addinfo'])) {
             $this->addinfo = @json_decode($record['addinfo']);
         }
@@ -155,15 +155,6 @@ class instantquiz_question extends instantquiz_entity {
     public function get_preview() {
         return format_text($this->question, $this->questionformat,
             array('context' => $this->instantquiz->get_context()));
-    }
-
-    /**
-     * Returns truncated and simply formatted additional info text to display on the manage page
-     *
-     * @return string
-     */
-    public function get_addinfo_preview() {
-        return print_r($this->addinfo, true);
     }
 }
 
