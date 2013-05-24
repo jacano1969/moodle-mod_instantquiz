@@ -29,16 +29,18 @@ $id = required_param('id', PARAM_INT);   // course
 
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 
-require_course_login($course);
+require_login($course);
 
 add_to_log($course->id, 'instantquiz', 'view all', 'index.php?id='.$course->id, '');
 
 $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
 
+$PAGE->set_pagelayout('incourse');
 $PAGE->set_url('/mod/instantquiz/index.php', array('id' => $id));
+$strplural = get_string('modulenameplural', 'mod_instantquiz');
+$PAGE->navbar->add($strplural);
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_context($coursecontext);
 
 echo $OUTPUT->header();
 
@@ -47,6 +49,7 @@ if (! $instantquizzes = get_all_instances_in_course('instantquiz', $course)) {
     notice(get_string('noinstantquizzes', 'instantquiz'), new moodle_url('/course/view.php', array('id' => $course->id)));
 }
 
+$table = new html_table();
 if ($course->format == 'weeks') {
     $table->head  = array(get_string('week'), get_string('name'));
     $table->align = array('center', 'left');
@@ -61,12 +64,12 @@ if ($course->format == 'weeks') {
 foreach ($instantquizzes as $instantquiz) {
     if (!$instantquiz->visible) {
         $link = html_writer::link(
-            new moodle_url('/mod/instantquiz.php', array('id' => $instantquiz->coursemodule)),
+            new moodle_url('/mod/instantquiz/view.php', array('id' => $instantquiz->coursemodule)),
             format_string($instantquiz->name, true),
             array('class' => 'dimmed'));
     } else {
         $link = html_writer::link(
-            new moodle_url('/mod/instantquiz.php', array('id' => $instantquiz->coursemodule)),
+            new moodle_url('/mod/instantquiz/view.php', array('id' => $instantquiz->coursemodule)),
             format_string($instantquiz->name, true));
     }
 
@@ -77,6 +80,6 @@ foreach ($instantquizzes as $instantquiz) {
     }
 }
 
-echo $OUTPUT->heading(get_string('modulenameplural', 'instantquiz'), 2);
+echo $OUTPUT->heading($strplural, 2);
 echo html_writer::table($table);
 echo $OUTPUT->footer();

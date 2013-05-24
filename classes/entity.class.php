@@ -42,7 +42,7 @@ abstract class instantquiz_entity {
     /**
      * Constructor from DB record
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @param stdClass $record
      */
     abstract protected function __construct($instantquiz, $record);
@@ -59,7 +59,7 @@ abstract class instantquiz_entity {
     /**
      * Creates and saves a new instance, fills the properties with default values
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return instantquiz_entity
      */
     public static function create($instantquiz) {
@@ -90,7 +90,7 @@ abstract class instantquiz_entity {
     /**
      * Retrieves all entities from database
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return array of instantquiz_entity
      */
     public static final function get_all($instantquiz) {
@@ -107,7 +107,7 @@ abstract class instantquiz_entity {
     /**
      * Returns an entity with specified id only if it belongs to the specified quiz
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @param int $id
      * @return instantquiz_entity
      */

@@ -50,7 +50,7 @@ class instantquiz_question extends instantquiz_entity {
     /**
      * Constructor from DB record
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @param stdClass $record
      */
     protected function __construct($instantquiz, $record) {
@@ -78,7 +78,7 @@ class instantquiz_question extends instantquiz_entity {
     /**
      * Creates a question with default text
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return instantquiz_question
      */
     public static function create($instantquiz) {

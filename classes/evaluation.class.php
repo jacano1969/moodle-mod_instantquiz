@@ -48,7 +48,7 @@ class instantquiz_evaluation extends instantquiz_entity {
     /**
      * Creates an evaluation criterion with default name
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return instantquiz_question
      */
     public static function create($instantquiz) {
@@ -64,7 +64,7 @@ class instantquiz_evaluation extends instantquiz_entity {
     /**
      * Constructor from DB record
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @param stdClass $record
      */
     protected function __construct($instantquiz, $record) {

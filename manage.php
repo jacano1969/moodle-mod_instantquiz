@@ -24,7 +24,7 @@
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once(dirname(__FILE__).'/classes/instantquiz.class.php');
 
 $id = required_param('cmid', PARAM_INT); // course_module ID
 $cmd = optional_param('cmd', null, PARAM_ALPHA);
@@ -33,7 +33,7 @@ $entityids = optional_param_array('entityid', array(), PARAM_INT);
 
 $cm = get_coursemodule_from_id('instantquiz', $id, 0, false, MUST_EXIST);
 
-$instantquiz = new instantquiz($cm);
+$instantquiz = new instantquiz_instantquiz($cm);
 $PAGE->set_url($instantquiz->manage_link());
 require_login($cm->course, true, $cm);
 $context = $instantquiz->get_context();

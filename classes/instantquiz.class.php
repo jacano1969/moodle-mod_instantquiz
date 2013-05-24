@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Internal library of functions for module instantquiz
+ * class instantquiz_instantquiz
  *
  * @package    mod_instantquiz
  * @copyright  2013 Marina Glancy
@@ -31,7 +31,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz {
+class instantquiz_instantquiz {
     /** @var stdClass record from DB table instantquiz */
     protected $record;
     /** @var stdClass|cm_info information about course module */

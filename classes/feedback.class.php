@@ -49,7 +49,7 @@ class instantquiz_feedback extends instantquiz_entity {
     /**
      * Creates a feedback with default text
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return instantquiz_feedback
      */
     public static function create($instantquiz) {
@@ -65,7 +65,7 @@ class instantquiz_feedback extends instantquiz_entity {
     /**
      * Constructor from DB record
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @param stdClass $record
      */
     protected function __construct($instantquiz, $record) {

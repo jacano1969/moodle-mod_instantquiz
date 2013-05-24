@@ -60,7 +60,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     /**
      * Renders HTML for manage page menu
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return string
      */
     protected function manage_menu($instantquiz) {
@@ -78,7 +78,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     /**
      * Renders html for evaluations list on manage page
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return string
      */
     protected function list_evaluations($instantquiz) {
@@ -108,7 +108,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     /**
      * Renders html for feedbacks list on manage page
      *
-     * @param instantquiz $instantquiz
+     * @param instantquiz_instantquiz $instantquiz
      * @return string
      */
     protected function list_feedbacks($instantquiz) {

@@ -30,7 +30,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class instantquiz_tmpl {
-    /** @var instantquiz */
+    /** @var instantquiz_instantquiz */
     protected $instantquiz;
 
     public function __construct(instantquiz $instantquiz) {
