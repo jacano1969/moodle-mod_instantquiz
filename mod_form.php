@@ -37,8 +37,11 @@ class mod_instantquiz_mod_form extends moodleform_mod {
      * Defines forms elements
      */
     public function definition() {
+        global $CFG, $PAGE;
 
         $mform = $this->_form;
+        $PAGE->requires->js_init_call('M.mod_instantquiz.init_templatechooser',
+                array(array('formid' => $mform->getAttribute('id'))));
 
         //-------------------------------------------------------------------------------
         // Adding the "general" fieldset, where all the common settings are showed
@@ -61,11 +64,11 @@ class mod_instantquiz_mod_form extends moodleform_mod {
         //-------------------------------------------------------------------------------
 
         $mform->addElement('header', 'instantquiz', get_string('modulename', 'mod_instantquiz'));
-        $mform->addElement('select', 'template', 'Template', instantquiz_get_templates());
-        // TODO onchange reload
-
-        $mform->addElement('header', 'instantquiztmpl', get_string('modulename', 'mod_instantquiz')); //TODO change name
-        //instantquiz_tmpl::edit_form($this);
+        $mform->addElement('select', 'template', get_string('subplugintype_instantquiztmpl', 'mod_instantquiz'), instantquiz_get_templates());
+        // button to update format-specific options on format change (will be hidden by JavaScript)
+        $mform->registerNoSubmitButton('updatetemplate');
+        $mform->addElement('submit', 'updatetemplate', get_string('update'), array('class' => 'hiddenifjs'));
+        $mform->addElement('hidden', 'addtemplateoptionshere');
 
         //-------------------------------------------------------------------------------
         // add standard elements, common to all modules
@@ -73,5 +76,25 @@ class mod_instantquiz_mod_form extends moodleform_mod {
         //-------------------------------------------------------------------------------
         // add standard buttons, common to all modules
         $this->add_action_buttons();
+    }
+
+    /**
+     * Adds/modifies form elements after data was set
+     */
+    public function definition_after_data() {
+        global $CFG;
+        parent::definition_after_data();
+        $mform = $this->_form;
+        $templatevalue = $mform->getElementValue('template');
+        if (is_array($templatevalue) && !empty($templatevalue)) {
+            require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.class.php');
+            $classname = instantquiz_instantquiz::get_instantquiz_class($templatevalue[0]);
+
+            $elements = $classname::edit_form_elements($mform);
+            for ($i = 0; $i < count($elements); $i++) {
+                $mform->insertElementBefore($mform->removeElement($elements[$i]->getName(), false),
+                        'addtemplateoptionshere');
+            }
+        }
     }
 }

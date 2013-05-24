@@ -53,6 +53,21 @@ class instantquiz_instantquiz {
     }
 
     /**
+     * Allows to add additional template settings to the module edit form
+     *
+     * Very important to return an array of added elements
+     *
+     * @param mod_instantquiz_mod_form $mform
+     * @return array array of elements that were added to the form
+     */
+    public static function edit_form_elements($mform) {
+        $elements = array();
+        // Example:
+        // $elements[] = $mform->addElement('text', 'elementname', get_string('elementname', 'instantquiztmpl_xxx')),
+        return $elements;
+    }
+
+    /**
      * Saves a new instance of the instantquiz into the database
      *
      * Given an object containing all the necessary data,
