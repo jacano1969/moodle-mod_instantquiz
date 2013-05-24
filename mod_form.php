@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot.'/mod/instantquiz/locallib.php');
 
 /**
  * Module instance settings form
@@ -60,20 +61,11 @@ class mod_instantquiz_mod_form extends moodleform_mod {
         //-------------------------------------------------------------------------------
 
         $mform->addElement('header', 'instantquiz', get_string('modulename', 'mod_instantquiz'));
-        // build list of all classes extending instantquiz_tmpl, include lib.php of all
-        // subplugins first
-        instantquiz_include_tmpl_lib();
-        $templates = array('instantquiz_tmpl' => instantquiz_tmpl::get_template_name());
-        foreach (get_declared_classes() as $classname) {
-            if (is_subclass_of($classname, 'instantquiz_tmpl')) {
-                $templates[$classname] = $classname::get_template_name();
-            }
-        }
-        $mform->addElement('select', 'template', 'Template', $templates);
+        $mform->addElement('select', 'template', 'Template', instantquiz_get_templates());
         // TODO onchange reload
 
         $mform->addElement('header', 'instantquiztmpl', get_string('modulename', 'mod_instantquiz')); //TODO change name
-        instantquiz_tmpl::edit_form($this);
+        //instantquiz_tmpl::edit_form($this);
 
         //-------------------------------------------------------------------------------
         // add standard elements, common to all modules

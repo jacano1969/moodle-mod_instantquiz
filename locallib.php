@@ -25,6 +25,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Given either course module or instantquizid returns an instance of proper instantquiz object
+ *
+ * @param int|stdClass|cm_info $cm
+ * @param int $instantquizid
+ * @return instantquiz_instantquiz
+ */
 function instantquiz_get_instantquiz($cm, $instantquizid = null) {
     global $DB, $CFG;
     if (!$instantquizid) {
@@ -34,16 +41,28 @@ function instantquiz_get_instantquiz($cm, $instantquizid = null) {
         }
         $instantquizid = $cm->instance;
     }
+    $record = $DB->get_record('instantquiz', array('id' => $instantquizid), '*', MUST_EXIST);
     if (!$cm) {
-        $record = $DB->get_record('instantquiz', array('id' => $instantquizid), '*', MUST_EXIST);
         $cm = get_coursemodule_from_instance('instantquiz', $record->id, $record->course, false, MUST_EXIST);
     }
 
     require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.class.php');
-    $instantquiz = new instantquiz_instantquiz($cm);
+    $classname = instantquiz_instantquiz::get_instantquiz_class($record->template);
+    $instantquiz = new $classname($cm, $record);
     return $instantquiz;
 }
 
-function instantquiz_get_all($course) {
-    $modinfo = get_fast_modinfo($course);
+/**
+ * Returns the list of template plugins and their names (for mod_form.php)
+ *
+ * @return array
+ */
+function instantquiz_get_templates() {
+    $subplugins = get_plugin_list('instantquiztmpl');
+    $rv = array('' => 'No template'); // TODO
+    foreach ($subplugins as $pluginname => $dir) {
+        $fullname = 'instantquiztmpl_'. $pluginname;
+        $rv[$fullname] = get_string('pluginname', $fullname);
+    }
+    return $rv;
 }

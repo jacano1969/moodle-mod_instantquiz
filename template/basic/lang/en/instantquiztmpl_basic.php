@@ -1,3 +1,3 @@
 <?php
 
-$string['pluginname'] = 'Basic templates for Instant Quiz';
+$string['pluginname'] = 'Basic Instant Quiz';

@@ -36,18 +36,20 @@ class instantquiz_instantquiz {
     protected $record;
     /** @var stdClass|cm_info information about course module */
     protected $cm;
-    /** @var instantquiz_tmpl */
-    protected $template;
 
     /**
      * Constructor
      *
      * @param stdClass|cm_info $cm information about course module
+     * @param stdClass $record record from DB table {instantquiz]
      */
-    public function __construct($cm) {
+    public function __construct($cm, $record = null) {
         global $DB;
         $this->cm = $cm;
-        $this->record = $DB->get_record('instantquiz', array('id' => $cm->instance), '*', MUST_EXIST);
+        if (empty($record)) {
+            $record = $DB->get_record('instantquiz', array('id' => $cm->instance), '*', MUST_EXIST);
+        }
+        $this->record = $record;
     }
 
     /**
@@ -79,27 +81,6 @@ class instantquiz_instantquiz {
     }
 
     /**
-     * Returns the template object
-     *
-     * @return instantquiz_tmpl
-     */
-    public function get_template() {
-        global $CFG;
-        if (!isset($this->template)) {
-            require_once($CFG->dirroot.'/mod/instantquiz/templatebase.php');
-            if (!empty($this->record->template) &&
-                    class_exists($this->record->template) &&
-                    is_subclass_of($this->record->template, 'instantquiz_tmpl')) {
-                $classname = $this->record->template;
-            } else {
-                $classname = 'instantquiz_tmpl';
-            }
-            $this->template = new $classname($this);
-        }
-        return $this->template;
-    }
-
-    /**
      * Returns a link to the manage page with the given arguments
      *
      * @param array $params
@@ -110,47 +91,85 @@ class instantquiz_instantquiz {
     }
 
     /**
-     * Returns a classname (and loads the appropriate php class) for specified entity (question, feedback, evaluation)
+     * Given the name of the template tries to locate a main instantquiz class for it
+     *
+     * @param string $template
+     * @return string name of the class
+     */
+    public static final function get_instantquiz_class($template) {
+        return self::locate_template_class($template, 'instantquiz');
+    }
+
+    /**
+     * Loads file and returns the appropriate classname
+     *
+     * Tries to find the class with name [template]_[classsuffix] in file
+     * [templateplugindir]/classes/[classsuffix].class.php
+     * If it fails, tries to locate the class instantquiz_[classsuffix]
+     * in file /mod/instantquiz/template/classes/[classsuffix].class.php
+     * If neither is found returns null
+     * 
+     * @param string $template full frankenstyle name of the instantquiztmpl plugin
+     * @param string $classsuffix
+     * @return string|null
+     */
+    protected static final function locate_template_class($template, $classsuffix) {
+        global $CFG;
+        static $locatedclasses = array();
+        $defclassname = 'instantquiz_'. $classsuffix;
+        if (strlen($template)) {
+            $classname = $template. '_'. $classsuffix;
+        } else {
+            $classname = $defclassname;
+        }
+        if (array_key_exists($classname, $locatedclasses)) {
+            return $locatedclasses[$classname];
+        }
+
+        if (class_exists($classname)) {
+            return $locatedclasses[$classname] = $classname;
+        }
+
+        if (strlen($template)) {
+            $filepath = $CFG->dirroot.'/mod/instantquiz/template/'. 
+                    preg_replace('/^instantquiztmpl_/', '', $template).
+                    '/classes/'.$classsuffix.'.class.php';
+            if (file_exists($filepath)) {
+                require_once($filepath);
+                if (class_exists($classname)) {
+                    return $locatedclasses[$classname] = $classname;
+                }
+            }
+        }
+
+        $deffilepath = $CFG->dirroot. '/mod/instantquiz/classes/'.$classsuffix.'.class.php';
+        if (file_exists($deffilepath)) {
+            require_once($deffilepath);
+            if (class_exists($defclassname)) {
+                return $locatedclasses[$classname] = $defclassname;
+            }
+        }
+        return $locatedclasses[$classname] = null;
+    }
+
+    /**
+     * Returns a classname (and loads the appropriate php file) for specified entity (question, feedback, evaluation)
      *
      * @param string $entitytype
      * @return string|null
      */
     public function get_entity_class($entitytype) {
-        global $CFG;
-        if ($entitytype === 'question') {
-            require_once($CFG->dirroot. '/mod/instantquiz/classes/question.class.php');
-            return 'instantquiz_question';
-        } else if ($entitytype === 'feedback') {
-            require_once($CFG->dirroot. '/mod/instantquiz/classes/feedback.class.php');
-            return 'instantquiz_feedback';
-        } else if ($entitytype === 'evaluation') {
-            require_once($CFG->dirroot. '/mod/instantquiz/classes/evaluation.class.php');
-            return 'instantquiz_evaluation';
-        } else {
-            return null;
-        }
+        return $this->locate_template_class($this->record->template, $entitytype);
     }
 
     /**
-     * Returns a classname (and loads the appropriate php class) for specified entity edit form (question, feedback, evaluation)
+     * Returns a classname (and loads the appropriate php file) for specified entity edit form (question, feedback, evaluation)
      *
      * @param string $entitytype
      * @return string|null
      */
     public function get_entity_edit_form_class($entitytype) {
-        global $CFG;
-        if ($entitytype === 'question') {
-            require_once($CFG->dirroot. '/mod/instantquiz/classes/question_form.class.php');
-            return 'instantquiz_question_form';
-        } else if ($entitytype === 'feedback') {
-            require_once($CFG->dirroot. '/mod/instantquiz/classes/feedback_form.class.php');
-            return 'instantquiz_feedback_form';
-        } else if ($entitytype === 'evaluation') {
-            require_once($CFG->dirroot. '/mod/instantquiz/classes/evaluation_form.class.php');
-            return 'instantquiz_evaluation_form';
-        } else {
-            return null;
-        }
+        return $this->locate_template_class($this->record->template, $entitytype. '_form');
     }
 
     /**
@@ -214,10 +233,23 @@ class instantquiz_instantquiz {
     /**
      * Returns the renderer instance
      *
+     * This function checks if file renderer.php is present in plugin directory
+     * and if it does it assumes that it contains a proper renderer class.
+     *
+     * Template plugins can overwrite this method but it is usually not needed.
+     *
      * @return plugin_renderer_base
      */
     public function get_renderer() {
-        global $PAGE;
+        global $PAGE, $CFG;
+        if (strlen($this->record->template)) {
+            $filepath = $CFG->dirroot.'/mod/instantquiz/template/'.
+                    preg_replace('/^instantquiztmpl_/', '', $this->record->template).
+                    '/renderer.php';
+            if (file_exists($filepath)) {
+                return $PAGE->get_renderer($this->record->template);
+            }
+        }
         return $PAGE->get_renderer('mod_instantquiz');
     }
 }
