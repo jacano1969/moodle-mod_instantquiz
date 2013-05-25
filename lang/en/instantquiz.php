@@ -48,3 +48,6 @@ $string['feedback_preview'] = 'Feedback';
 $string['defquestion'] = 'Question {$a}';
 $string['addquestion'] = 'Add new question';
 $string['question_preview'] = 'Question';
+
+$string['questionoption'] = 'Option';
+$string['questionaddoption'] = 'Add option';

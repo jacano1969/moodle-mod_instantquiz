@@ -57,21 +57,63 @@ class instantquiz_question_form extends moodleform {
 
         $data = array(
             'question_editor' => array(),
+            'options' => array(),
         );
 
         foreach ($this->entities as &$entity) {
-            $suffix = '['.$entity->id.']';
-            $mform->addElement('hidden', 'entityid'. $suffix, 1);
+            $mform->addElement('hidden', 'entityid['.$entity->id.']', 1);
 
-            $mform->addElement('editor','question_editor'. $suffix, get_string('question_preview', 'mod_instantquiz'), null, $this->editoroptions);
+            $this->add_entity_elements($entity);
 
             $tmpdata = file_prepare_standard_editor($entity, 'question', $this->editoroptions, $context, 'mod_instantquiz', 'question', $entity->id);
             $data['question_editor'][$entity->id] = $tmpdata->question_editor;
+            $data['options'][$entity->id] = $entity->options;
         }
 
         $this->add_action_buttons(true, get_string('savechanges'));
         $this->set_data($data);
     }
+
+    /**
+     * Adds form elements for one entity (question)
+     *
+     * @param instantquiz_entity $entity
+     */
+    protected function add_entity_elements($entity) {
+        $mform = $this->_form;
+        $suffix = '['.$entity->id.']';
+        $mform->addElement('editor','question_editor'. $suffix, get_string('question_preview', 'mod_instantquiz'), null, $this->editoroptions);
+
+        $elementobjs = array();
+        $elementobjs[] = $mform->createElement('text', 'value', '');
+        $elementobjs[] = $mform->createElement('hidden', 'idx');
+        foreach ($this->instantquiz->get_entities('criterion') as $criterion) {
+            $elementobjs[] = $mform->createElement('static', '','', $criterion->criterion);
+            $elementobjs[] = $mform->createElement('text', 'points]['.$criterion->id, '', array('size' => 3));
+        }
+        // $elementobjs[] = $mform->createElement('submit', 'delete', get_string('delete'));
+        // TODO delete does not work yet
+
+        $group = $mform->createElement('group', 'options'. $suffix,
+                    get_string('questionoption', 'mod_instantquiz'), $elementobjs);
+        $this->repeat_elements(array($group), count($entity->options), array(),
+                'repeathiddenname-'. $entity->id, 'addoption-'.$entity->id, 1,
+                get_string('questionaddoption', 'mod_instantquiz'), true);
+    }
+
+    /*public function no_submit_button_pressed() {
+        if (parent::no_submit_button_pressed()) return true;
+        if (!empty($_REQUEST['options']) && is_array($_REQUEST['options'])) {
+            foreach ($_REQUEST['options'] as $options) {
+                foreach ($options as $option) {
+                    if (!empty($option['delete'])) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }*/
 
     /**
      * Form validation.
@@ -103,7 +145,6 @@ class instantquiz_question_form extends moodleform {
      * @return object submitted data; NULL if not valid or not submitted or cancelled
      */
     public function get_data() {
-        global $CFG;
         $data = parent::get_data();
         if ($data !== null) {
             $context = $this->instantquiz->get_context();
@@ -118,6 +159,15 @@ class instantquiz_question_form extends moodleform {
                     $el = &$data->$key;
                     $el[$id] = $value;
                 }
+            }
+            foreach ($data->options as $id => $options) {
+                // Remove options with empty value
+                foreach ($options as $key => $option) {
+                    if (!strlen(trim($option['value']))) {
+                        unset($data->options[$id][$key]);
+                    }
+                }
+                $data->options[$id] = array_values($data->options[$id]);
             }
         }
         return $data;

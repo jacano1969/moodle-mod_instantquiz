@@ -37,6 +37,7 @@ class instantquiz_question extends instantquiz_entity {
     public $questionformat;
     public $options;
     public $addinfo;
+    protected $lastmaxoptionidx;
 
     /**
      * Returns the name of DB table (used in functions get_all() and update() )
@@ -63,12 +64,9 @@ class instantquiz_question extends instantquiz_entity {
         $this->sortorder = $record['sortorder'];
         $this->options = array();
         if (isset($record['options'])) {
-            if (($options = @json_decode($record['options'], true)) && is_array($options)) {
-                foreach ($options as $option) {
-                    $this->options[] = new instantquiz_question_option($option);
-                }
-            }
+            $this->options = convert_to_array(@json_decode($record['options']));
         }
+        $this->lastmaxoptionidx = $this->get_max_options_idx();
         $this->addinfo = array();
         if (isset($record['addinfo'])) {
             $this->addinfo = @json_decode($record['addinfo']);
@@ -97,6 +95,16 @@ class instantquiz_question extends instantquiz_entity {
      */
     public function update() {
         global $DB;
+        // Set 'idx' for new options
+        if (!empty($this->options) && is_array($this->options)) {
+            foreach ($this->options as $i => $option) {
+                if (empty($option['idx'])) {
+                    $this->options[$i]['idx'] = ++$this->lastmaxoptionidx;
+                }
+            }
+        } else {
+            $this->options = array();
+        }
         $record = array(
             'instantquizid' => $this->instantquiz->id,
             'question' => $this->question,
@@ -114,37 +122,20 @@ class instantquiz_question extends instantquiz_entity {
     }
 
     /**
-     * Adds an option if it does not exist yet
+     * Calculates the maximum 'idx' property of all options
      *
-     * @param string $value
-     * @return instantquiz_question_option existing or just added option object
+     * @return int
      */
-    public function add_option($value) {
-        if (($option = $this->get_option($value)) === false) {
-             $option = new instantquiz_question_option();
-             $option->value = $value;
-             $this->options[] = $option;
-        }
-        return $option;
-    }
-
-    /**
-     * Checks if option exists, if yes returns the object
-     *
-     * @param string $value
-     * @return false|instantquiz_question_option option object or false if does not exist
-     */
-    public function get_option($value) {
-        foreach ($this->options as &$option) {
-            if ($option->value === $value) {
-                return $option;
+    protected function get_max_options_idx() {
+        $maxidx = 0;
+        if (!empty($this->options) && is_array($this->options)) {
+            foreach ($this->options as $option) {
+                if (!empty($option['idx']) && $option['idx'] > $maxidx) {
+                    $maxidx = $option['idx'];
+                }
             }
         }
-        return false;
-    }
-
-    public function set_option_evaluation($value, $evid, $points) {
-        $this->add_option($value)->set_evaluation($evid, $points);
+        return $maxidx;
     }
 
     /**
@@ -153,34 +144,15 @@ class instantquiz_question extends instantquiz_entity {
      * @return string
      */
     public function get_preview() {
-        return format_text($this->question, $this->questionformat,
+        $preview = format_text($this->question, $this->questionformat,
             array('context' => $this->instantquiz->get_context()));
-    }
-}
-
-class instantquiz_question_option extends stdClass {
-
-    public function __construct($option = array()) {
-        if (isset($option->value)) {
-            $this->value = $option->value;
-        }
-        $this->points = array();
-        if (isset($option->points) && is_array($option->points)) {
-            foreach ($option->points as $evid => $points) {
-                $this->set_evaluation($evid, $points);
+        if (!empty($this->options)) {
+            $lines = array();
+            foreach ($this->options as $option) {
+                $lines[] = html_writer::tag('li', $option['value']);
             }
+            $preview .= html_writer::tag('ul', join('', $lines));
         }
-    }
-
-    public function set_evaluation($evid, $points) {
-        if (!$points) {
-            unset($this->points[$evid]);
-        } else {
-            $needresorting = isset($this->points[$evid]);
-            $this->points[$evid] = $points;
-            if ($needresorting) {
-                ksort($this->points, SORT_NUMERIC);
-            }
-        }
+        return $preview;
     }
 }
