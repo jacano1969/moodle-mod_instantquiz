@@ -87,7 +87,6 @@ class instantquiz_feedback extends instantquiz_entity {
     public function update() {
         global $DB;
         $record = array(
-            'instantquizid' => $this->instantquiz->id,
             'sortorder' => $this->sortorder,
             'feedback' => $this->feedback,
             'feedbackformat' => $this->feedbackformat,
@@ -97,6 +96,7 @@ class instantquiz_feedback extends instantquiz_entity {
             $record['id'] = $this->id;
             $DB->update_record($this->get_table_name(), $record);
         } else {
+            $record['instantquizid'] = $this->instantquiz->id;
             $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
     }

@@ -106,7 +106,6 @@ class instantquiz_question extends instantquiz_entity {
             $this->options = array();
         }
         $record = array(
-            'instantquizid' => $this->instantquiz->id,
             'question' => $this->question,
             'questionformat' => $this->questionformat,
             'sortorder' => $this->sortorder,
@@ -117,6 +116,7 @@ class instantquiz_question extends instantquiz_entity {
             $record['id'] = $this->id;
             $DB->update_record($this->get_table_name(), $record);
         } else {
+            $record['instantquizid'] = $this->instantquiz->id;
             $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
     }

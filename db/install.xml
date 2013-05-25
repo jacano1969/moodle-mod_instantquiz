@@ -55,7 +55,7 @@
         <INDEX NAME="instantquiz" UNIQUE="false" FIELDS="instantquizid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="instantquiz_feedback" COMMENT="instantquiz_feedback table retrofitted from MySQL" PREVIOUS="instantquiz_question" NEXT="instantquiz_answer">
+    <TABLE NAME="instantquiz_feedback" COMMENT="instantquiz_feedback table retrofitted from MySQL" PREVIOUS="instantquiz_question" NEXT="instantquiz_attempt">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
         <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
@@ -71,13 +71,13 @@
         <INDEX NAME="instantquiz" UNIQUE="false" FIELDS="instantquizid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="instantquiz_answer" COMMENT="instantquiz_answer table retrofitted from MySQL" PREVIOUS="instantquiz_feedback">
+    <TABLE NAME="instantquiz_attempt" COMMENT="Student attempt to answer the instantquiz questions" PREVIOUS="instantquiz_feedback">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
         <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="timestarted"/>
         <FIELD NAME="timestarted" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid" NEXT="timefinished"/>
-        <FIELD NAME="timefinished" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="timestarted" NEXT="attemptnumber"/>
+        <FIELD NAME="timefinished" TYPE="int" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="timestarted" NEXT="attemptnumber"/>
         <FIELD NAME="attemptnumber" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="timefinished" NEXT="overriden"/>
         <FIELD NAME="overriden" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="attemptnumber" NEXT="answers"/>
         <FIELD NAME="answers" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="overriden" NEXT="points"/>

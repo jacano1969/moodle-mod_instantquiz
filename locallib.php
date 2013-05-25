@@ -66,3 +66,10 @@ function instantquiz_get_templates() {
     }
     return $rv;
 }
+
+class instantquiz_collection implements renderable {
+    var $object;
+    public function __construct($object) {
+        $this->object = $object;
+    }
+}

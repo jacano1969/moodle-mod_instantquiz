@@ -53,7 +53,9 @@ $PAGE->set_heading(format_string($course->fullname));
 // other things you may want to set - remove if not needed
 //$PAGE->set_cacheable(false);
 //$PAGE->set_focuscontrol('some-html-id');
-//$PAGE->add_body_class('instantquiz-'.$somevar);
+if ($instantquiz->template) {
+    $PAGE->add_body_class(preg_replace('/_/', '-', $instantquiz->template));
+}
 
 // Output starts here
 $renderer = $instantquiz->get_renderer();
@@ -63,8 +65,7 @@ if ($instantquiz->intro) { // Conditions to show the intro can change to look fo
     echo $renderer->box(format_module_intro('instantquiz', $instantquiz, $cm->id), 'generalbox mod_introbox', 'instantquizintro');
 }
 
-// Replace the following lines with you own code
-echo $renderer->heading('Yay! It works!');
+echo $renderer->render($instantquiz->user_attempts());
 
 // Finish the page
 echo $renderer->footer();

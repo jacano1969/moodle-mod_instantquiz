@@ -37,7 +37,7 @@ class instantquiz_criterion extends instantquiz_entity {
     var $addinfo;
 
     /**
-     * Returns the name of DB table (used in functions get_all() and update() )
+     * Returns the name of DB table (used in functions get_all(), delete() and update() )
      *
      * @return string
      */
@@ -49,7 +49,7 @@ class instantquiz_criterion extends instantquiz_entity {
      * Creates an evaluation criterion with default name
      *
      * @param instantquiz_instantquiz $instantquiz
-     * @return instantquiz_question
+     * @return instantquiz_criterion
      */
     public static function create($instantquiz) {
         $defaultvalues = new stdClass();
@@ -76,7 +76,7 @@ class instantquiz_criterion extends instantquiz_entity {
         }
         $this->addinfo = array();
         if (isset($record->addinfo) && ($addinfo = @json_decode($record->addinfo))) {
-            $this->addinfo = $addinfo;
+            $this->addinfo = convert_to_array($addinfo);
         }
     }
 
@@ -86,7 +86,6 @@ class instantquiz_criterion extends instantquiz_entity {
     public function update() {
         global $DB;
         $record = array(
-            'instantquizid' => $this->instantquiz->id,
             'sortorder' => $this->sortorder,
             'criterion' => $this->criterion,
             'addinfo' => json_encode($this->addinfo)
@@ -95,6 +94,7 @@ class instantquiz_criterion extends instantquiz_entity {
             $record['id'] = $this->id;
             $DB->update_record($this->get_table_name(), $record);
         } else {
+            $record['instantquizid'] = $this->instantquiz->id;
             $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
     }

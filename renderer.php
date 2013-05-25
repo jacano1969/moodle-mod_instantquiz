@@ -167,4 +167,31 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 get_string('addquestion', 'mod_instantquiz'));
         return $output;
     }
+
+    public function render_instantquiz_collection($collection) {
+        return $this->recursive_render($collection->object);
+    }
+
+    public function recursive_render($obj) {
+        if ($obj instanceof renderable) {
+            return $this->render($obj);
+        } else if ($obj instanceof moodleform) {
+            ob_start();
+            $obj->display();
+            $output = ob_get_contents();
+            ob_clean();
+            return $output;
+        } else if ($obj instanceof html_table) {
+            return html_writer::table($obj);
+        } else if (is_array($obj) || is_object($obj)) {
+            $output = '';
+            foreach ($obj as $value) {
+                $output .= $this->recursive_render($value);
+            }
+            return $output;
+        } else {
+            // TODO hack, do it nicer
+            return $this->notification($obj);
+        }
+    }
 }
