@@ -69,7 +69,7 @@ class instantquiz_question extends instantquiz_entity {
         $this->lastmaxoptionidx = $this->get_max_options_idx();
         $this->addinfo = array();
         if (isset($record['addinfo'])) {
-            $this->addinfo = @json_decode($record['addinfo']);
+            $this->addinfo = convert_to_array(@json_decode($record['addinfo']));
         }
     }
 

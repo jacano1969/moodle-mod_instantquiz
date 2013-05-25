@@ -36,6 +36,7 @@ class instantquiz_question_form extends moodleform {
     var $entities;
     var $editoroptions;
     var $instantquiz;
+    var $entitiescount;
 
     /**
      * Form definition
@@ -58,16 +59,21 @@ class instantquiz_question_form extends moodleform {
         $data = array(
             'question_editor' => array(),
             'options' => array(),
+            'sortorder' => array(),
+            //'addinfo' => array()
         );
 
+        $cnt = 0;
         foreach ($this->entities as &$entity) {
             $mform->addElement('hidden', 'entityid['.$entity->id.']', 1);
 
-            $this->add_entity_elements($entity);
+            $this->add_entity_elements($entity, $cnt++);
 
             $tmpdata = file_prepare_standard_editor($entity, 'question', $this->editoroptions, $context, 'mod_instantquiz', 'question', $entity->id);
             $data['question_editor'][$entity->id] = $tmpdata->question_editor;
             $data['options'][$entity->id] = $entity->options;
+            $data['sortorder'][$entity->id] = $entity->sortorder;
+            // $data['addinfo'][$entity->id] = $entity->addinfo;
         }
 
         $this->add_action_buttons(true, get_string('savechanges'));
@@ -78,10 +84,15 @@ class instantquiz_question_form extends moodleform {
      * Adds form elements for one entity (question)
      *
      * @param instantquiz_entity $entity
+     * @param int $cnt number of this entity in the form (starting from 0)
      */
-    protected function add_entity_elements($entity) {
+    protected function add_entity_elements($entity, $cnt) {
         $mform = $this->_form;
+        if (count($this->entities) > 1) {
+            $mform->addElement('header', 'header-'.$entity->id, get_string('defquestion', 'mod_instantquiz', $cnt + 1));
+        }
         $suffix = '['.$entity->id.']';
+        $mform->addElement('hidden', 'sortorder'. $suffix);
         $mform->addElement('editor','question_editor'. $suffix, get_string('question_preview', 'mod_instantquiz'), null, $this->editoroptions);
 
         $elementobjs = array();

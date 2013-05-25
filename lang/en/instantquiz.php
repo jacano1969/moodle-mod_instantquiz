@@ -44,6 +44,7 @@ $string['criterion_name'] = 'Criterion';
 $string['deffeedback'] = 'Feedback {$a}';
 $string['addfeedback'] = 'Add new feedback';
 $string['feedback_preview'] = 'Feedback';
+$string['feedbackformulalegend'] = 'Expressions ${Criterion name} will be substituted with the number of points on this criterion. Also you can use numbers and operators <. <=, >, >=, ==, !=, AND, OR, &&, || and parenthesis';
 
 $string['defquestion'] = 'Question {$a}';
 $string['addquestion'] = 'Add new question';

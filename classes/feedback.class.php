@@ -77,7 +77,7 @@ class instantquiz_feedback extends instantquiz_entity {
         }
         $this->addinfo = array();
         if (!empty($record->addinfo) && $addinfo = @json_decode($record->addinfo)) {
-            $this->addinfo = $addinfo;
+            $this->addinfo = convert_to_array($addinfo);
         }
     }
 
@@ -107,7 +107,11 @@ class instantquiz_feedback extends instantquiz_entity {
      * @return string
      */
     public function get_preview() {
-        return format_text($this->feedback, $this->feedbackformat,
+        $preview = format_text($this->feedback, $this->feedbackformat,
             array('context' => $this->instantquiz->get_context()));
+        if (!empty($this->addinfo['formula'])) {
+            $preview .= '<div><b>'. $this->addinfo['formula']. '</b></div>';
+        }
+        return $preview;
     }
 }

@@ -57,20 +57,53 @@ class instantquiz_feedback_form extends moodleform {
 
         $data = array(
             'feedback_editor' => array(),
+            'addinfo' => array(),
+            'sortorder' => array()
         );
 
+        $cnt = 0;
         foreach ($this->entities as &$entity) {
-            $suffix = '['.$entity->id.']';
-            $mform->addElement('hidden', 'entityid'. $suffix, 1);
+            $mform->addElement('hidden', 'entityid['.$entity->id.']', 1);
 
-            $mform->addElement('editor','feedback_editor'. $suffix, get_string('feedback_preview', 'mod_instantquiz'), null, $this->editoroptions);
+            $this->add_entity_elements($entity, $cnt++);
 
             $tmpdata = file_prepare_standard_editor($entity, 'feedback', $this->editoroptions, $context, 'mod_instantquiz', 'feedback', $entity->id);
             $data['feedback_editor'][$entity->id] = $tmpdata->feedback_editor;
+            $data['addinfo'][$entity->id] = $entity->addinfo;
+            $data['sortorder'][$entity->id] = $entity->sortorder;
         }
 
         $this->add_action_buttons(true, get_string('savechanges'));
         $this->set_data($data);
+    }
+
+    /**
+     * Adds form elements for one entity (question)
+     *
+     * @param instantquiz_entity $entity
+     * @param int $cnt number of this entity in the form (starting from 0)
+     */
+    protected function add_entity_elements($entity, $cnt) {
+        $mform = $this->_form;
+        if (count($this->entities) > 1) {
+            $mform->addElement('header', 'header-'.$entity->id, get_string('deffeedback', 'mod_instantquiz', $cnt + 1));
+        }
+        $suffix = '['.$entity->id.']';
+        $mform->addElement('hidden', 'sortorder'. $suffix);
+        $mform->addElement('editor','feedback_editor'. $suffix, get_string('feedback_preview', 'mod_instantquiz'), null, $this->editoroptions);
+        static $criterialegend = false;
+        if ($criterialegend === false) {
+            $ccount = count($this->instantquiz->get_entities('criterion'));
+            if ($ccount) {
+                $criterialegend = get_string('feedbackformulalegend', 'mod_instantquiz');
+            }
+        }
+        if (!empty($criterialegend)) {
+            $mform->addElement('text', 'addinfo'.$suffix.'[formula]', 'Formula', array('size' => 60));
+            $mform->addElement('static', '', '', $criterialegend);
+        } else {
+            $mform->addElement('hidden', 'addinfo'.$suffix.'[formula]');
+        }
     }
 
     /**
