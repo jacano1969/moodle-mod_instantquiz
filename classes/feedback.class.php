@@ -32,7 +32,7 @@ require_once($CFG->dirroot. '/mod/instantquiz/classes/entity.class.php');
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_feedback extends instantquiz_entity {
+class instantquiz_feedback extends instantquiz_entity implements renderable {
     var $feedback;
     var $feedbackformat;
     var $addinfo;
@@ -101,14 +101,24 @@ class instantquiz_feedback extends instantquiz_entity {
         }
     }
 
+    public static function get_default_feedback($instantquiz) {
+        return new static($instantquiz,
+                (object)array('feedback' => 'Thank you',
+                    'feedbackformat' => FORMAT_HTML));
+    }
+
+    public function get_formatted_feedback($params = array()) {
+        return format_text($this->feedback, $this->feedbackformat,
+            array('context' => $this->instantquiz->get_context()) + $params);
+    }
+
     /**
      * Returns truncated and simply formatted feedback text to display on the manage page
      *
      * @return string
      */
     public function get_preview() {
-        $preview = format_text($this->feedback, $this->feedbackformat,
-            array('context' => $this->instantquiz->get_context()));
+        $preview = $this->get_formatted_feedback();
         if (!empty($this->addinfo['formula'])) {
             $preview .= '<div><b>'. $this->addinfo['formula']. '</b></div>';
         }

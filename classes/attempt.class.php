@@ -137,6 +137,13 @@ class instantquiz_attempt extends instantquiz_entity {
         return null;
     }
 
+    /**
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @param int $userid
+     * @param int $attemptid
+     * @return instantquiz_attempt
+     */
     public static function get_user_attempt($instantquiz, $userid, $attemptid = 0) {
         global $DB;
         if ($attemptid) {
@@ -151,6 +158,12 @@ class instantquiz_attempt extends instantquiz_entity {
         }
     }
 
+    /**
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @param int $userid
+     * @return instantquiz_attempt
+     */
     public static function get_all_user_attempts($instantquiz, $userid) {
         global $DB;
         $rv = array();
@@ -162,12 +175,72 @@ class instantquiz_attempt extends instantquiz_entity {
         return $rv;
     }
 
+    /**
+     *
+     * @return bool
+     */
     public function can_continue_attempt() {
         return !$this->timefinished;
     }
 
+    /**
+     *
+     */
     public function evaluate() {
-        $this->timefinished = time();
+        $criteria = $this->instantquiz->get_entities('criterion');
+        $criteriaids = array_keys($criteria);
+        $questions = $this->instantquiz->get_entities('question');
+        $evaluatedfeedbacks = array();
+
+        // Get number of points for each criterion
+        $points = array_fill_keys($criteriaids, 0);
+        foreach ($questions as $id => $question) {
+            if (isset($this->answers[$id])) {
+                $answer = $this->answers[$id];
+                if (!is_array($answer)) {
+                    $answer = array($answer => 1);
+                }
+                foreach ($question->options as $option) {
+                    if (array_key_exists($option['idx'], $answer)) {
+                        // get the points for an answer
+                        foreach ($option['points'] as $critid => $pts) {
+                            if (isset($points[$critid])) {
+                                $points[$critid] += $pts;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Evaluate formula for each feedback and find list of feedbacks for this instantquiz
+        $feedbacks = $this->instantquiz->get_entities('feedback');
+        foreach ($feedbacks as $fid => &$feedback) {
+            $formula = $feedback->addinfo['formula'];
+            foreach ($criteria as $critid => $criterion) {
+                $xcriterion = preg_quote('${'.$criterion->criterion.'}', '/');
+                $formula = preg_replace("/$xcriterion/i", $points[$critid], $formula);
+            }
+            $formula = preg_replace("/\$\{\}/i", 0, $formula); // replace misspelled criteria
+            $formulavalid = eval('return '.$formula.';'); // TODO dangerous!!!!!
+            if ($formulavalid) {
+                $evaluatedfeedbacks[] = $fid;
+            }
+        }
+
+        // update DB if anything changed
+        $changed = false;
+        if (!$this->timefinished) {
+            $this->timefinished = time();
+            $changed = true;
+        }
+        if (join(',', $evaluatedfeedbacks) !== join(',', $this->feedbacks)) {
+            $this->feedbacks = $evaluatedfeedbacks;
+            $changed = true;
+        }
+        if ($changed) {
+            $this->update();
+        }
     }
 
     /**
@@ -175,7 +248,22 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return renderable
      */
     public function show_feedback() {
-        return new instantquiz_collection('Thank you!'); // TODO
+        $elements = array();
+        if (!empty($this->feedbacks)) {
+            $feedbacks = $this->instantquiz->get_entities('feedback');
+            foreach ($this->feedbacks as $feedbackid) {
+                if (isset($feedbacks[$feedbackid])) {
+                    $elements[] = $feedbacks[$feedbackid];
+                }
+            }
+        }
+        if (empty($elements)) {
+            $classname = $this->instantquiz->get_entity_class('feedback');
+            $elements[] = $classname::get_default_feedback($this->instantquiz);
+        }
+        $elements[] = new single_button(new moodle_url('/mod/instantquiz/view.php', array('id' => $this->instantquiz->get_cm()->id)),
+                get_string('back'));
+        return new instantquiz_collection($elements);
     }
 
     /**
@@ -196,8 +284,8 @@ class instantquiz_attempt extends instantquiz_entity {
                 $data->answers = array();
             }
             $this->answers = $data->answers;
-            $this->evaluate();
             $this->update();
+            $this->evaluate();
             if ($this->timefinished) {
                 // YAY! User finished the attempt, show feedback
                 return $this->show_feedback();

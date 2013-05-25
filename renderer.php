@@ -194,4 +194,14 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             return $this->notification($obj);
         }
     }
+
+    /**
+     * Renders the instantquiz feedback to show to the user
+     *
+     * @param instantquiz_feedback $feedback
+     * @return string
+     */
+    public function render_instantquiz_feedback($feedback) {
+        return $feedback->get_formatted_feedback();
+    }
 }
