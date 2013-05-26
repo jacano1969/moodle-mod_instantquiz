@@ -32,7 +32,7 @@ require_once($CFG->libdir. '/formslib.php');
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instantquiz_feedback_form extends moodleform {
+class instantquiz_feedback_form extends moodleform implements renderable {
     var $entities;
     var $editoroptions;
     var $instantquiz;

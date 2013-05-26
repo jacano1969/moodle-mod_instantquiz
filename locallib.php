@@ -98,3 +98,6 @@ class instantquiz_tabs implements renderable {
         $this->activated = $activated;
     }
 }
+
+class instantquiz_table extends html_table implements renderable {
+}

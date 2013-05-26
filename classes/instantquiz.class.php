@@ -437,7 +437,7 @@ class instantquiz_instantquiz {
         $objects = array();
         $cnt = 0;
         if (count($all)) {
-            $table = new html_table();
+            $table = new instantquiz_table();
             $table->head = array('#',
                 get_string('criterion_name', 'mod_instantquiz'),
                 get_string('edit'),
@@ -467,7 +467,7 @@ class instantquiz_instantquiz {
         $objects = array();
         $cnt = 0;
         if (count($all)) {
-            $table = new html_table();
+            $table = new instantquiz_table();
             $table->head = array('#',
                 get_string('feedback_preview', 'mod_instantquiz'),
                 get_string('edit'),
@@ -497,7 +497,7 @@ class instantquiz_instantquiz {
         $objects = array();
         $cnt = 0;
         if (count($all)) {
-            $table = new html_table();
+            $table = new instantquiz_table();
             $table->head = array('#',
                 get_string('question_preview', 'mod_instantquiz'),
                 get_string('edit'),
