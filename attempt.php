@@ -34,7 +34,7 @@ $cm = $instantquiz->get_cm();
 $PAGE->set_url($instantquiz->attempt_link());
 require_login($cm->course, true, $cm);
 $context = $instantquiz->get_context();
-require_capability('mod/instantquiz:view', $context);
+require_capability('mod/instantquiz:attempt', $context);
 
 $PAGE->set_pagelayout('incourse'); // or admin?
 $PAGE->set_title(format_string($instantquiz->name)); // TODO 2.5 replace with $cm->get_formatted_name()

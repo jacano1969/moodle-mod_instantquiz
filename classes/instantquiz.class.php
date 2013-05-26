@@ -525,8 +525,11 @@ class instantquiz_instantquiz {
     public function view_page() {
         global $USER;
         $elements = array();
-        $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
-                get_string('startattempt', 'mod_instantquiz'));
+        $context = $this->get_context();
+        if (has_capability('mod/instantquiz:attempt', $context)) {
+            $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
+                    get_string('startattempt', 'mod_instantquiz'));
+        }
         $classname = $this->get_entity_class('attempt');
         $attempts = $classname::get_all_user_attempts($this, $USER->id);
         foreach ($attempts as &$attempt) {

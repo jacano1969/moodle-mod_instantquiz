@@ -181,7 +181,8 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return bool
      */
     public function can_continue_attempt() {
-        return !$this->timefinished;
+        $context = $this->instantquiz->get_context();
+        return !$this->timefinished && has_capability('mod/instantquiz:attempt', $context);
     }
 
     /**

@@ -1,7 +1,9 @@
-Instant quiz can be also called test or survey. User answers the questions and
-receives an instant feedback, without any grades. The best examples are
-"Personality tests". For instance, user answers several multichoice questions
-and system tells him whether he is introvert, extrovert or a balanced person.
+Instant quiz provides functionality to create non-gradable tests, surveys,
+feedbacks and/or questionnaires. Student answers the questions and
+receives an instant feedback. Teacher can view aggregated statistics,
+or individual answers or even nothing if this is a teacher evaluation in the
+end of the course. It depends on how permissions are configured for the
+particular test.
 
 How instant quiz works:
 
@@ -10,10 +12,14 @@ criteria. For each answer student gets certain number of points in one or severa
 criteria. In the end of the test the total number of points for each criterion
 is calculated. Student receives a feedback according to the points.
 
+Examples:
+
 The most common scenario is to have just one criterion and several feedbacks.
 For example for each option in a question student will receive 0, 1 or 2 points.
-If in the end user scored less than 50% he would get feedback 1, if between
-50% and 75% he would get feedback 2, and feedback 3 if above 75%.
+If in the end user scored less than 33% he would get feedback 1, if between
+33% and 66% he would get feedback 2, and feedback 3 if above 66%. Examples are
+"Personality tests" - user answers several multichoice questions
+and system tells him whether he is introvert, extrovert or a balanced person.
 
 Another scenario is to have several criteria and each option in a question
 would bring one point towards one of those criteria. In the end if the user has
