@@ -34,144 +34,21 @@ defined('MOODLE_INTERNAL') || die();
 class mod_instantquiz_renderer extends plugin_renderer_base {
 
     /**
-     * Renders HTML for manage page contents
+     * Renderer for instantquiz_collection
      *
-     * @param instantquiz $instantquiz
-     * @param string $cmd 'cmd' argument in /mod/instantquiz/manage.php page
-     * @param string $entitytype 'entity' argument in /mod/instantquiz/manage.php page
-     * @param string $entityids 'entityid' argument in /mod/instantquiz/manage.php page (note that keys
-     *     of this array are actual entity ids, the values are not important)
+     * @param instantquiz_collection $collection
      * @return string
      */
-    public function manage_instantquiz($instantquiz, $cmd = null, $entitytype = null, $entityids = array()) {
-        $output = $this->manage_menu($instantquiz);
-        if ($cmd === 'list') {
-            if ($entitytype === 'question') {
-                $output .= $this->list_questions($instantquiz);
-            } else if ($entitytype === 'criterion') {
-                $output .= $this->list_criterions($instantquiz);
-            } else if ($entitytype === 'feedback') {
-                $output .= $this->list_feedbacks($instantquiz);
-            }
-        }
-        return $output;
-    }
-
-    /**
-     * Renders HTML for manage page menu
-     *
-     * @param instantquiz_instantquiz $instantquiz
-     * @return string
-     */
-    public function manage_menu($instantquiz) {
-        $cmd = optional_param('cmd', null, PARAM_ALPHA);
-        $entity = optional_param('entity', null, PARAM_ALPHA);
-        $tabrows = array();
-        foreach (array('criterion', 'question', 'feedback') as $key) {
-            $linkedwhenselected = ($cmd !== 'list');
-            $tabrows[] = new tabobject($key, $instantquiz->manage_link(array('cmd' => 'list', 'entity' => $key)), $key  /* TODO string */,
-                    '', $linkedwhenselected);
-        }
-        return print_tabs(array($tabrows), $entity, NULL, NULL, true);
-    }
-
-    /**
-     * Renders html for criteria list on manage page
-     *
-     * @param instantquiz_instantquiz $instantquiz
-     * @return string
-     */
-    public function list_criterions($instantquiz) {
-        $all = $instantquiz->get_entities('criterion');
-        $output = '';
-        $cnt = 0;
-        if (count($all)) {
-            $table = new html_table();
-            $table->head = array('#',
-                get_string('criterion_name', 'mod_instantquiz'),
-                get_string('edit'),
-                get_string('delete'));
-            $table->data = array();
-            foreach ($all as $e) {
-                $table->data[] = array(++$cnt, $e->get_preview(),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('edit')),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('delete')));
-            }
-            $output .= html_writer::table($table);
-            $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'criterion')),
-                    get_string('edit'));
-        }
-        $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'criterion')),
-                get_string('addcriterion', 'mod_instantquiz'));
-        return $output;
-    }
-
-    /**
-     * Renders html for feedbacks list on manage page
-     *
-     * @param instantquiz_instantquiz $instantquiz
-     * @return string
-     */
-    public function list_feedbacks($instantquiz) {
-        $all = $instantquiz->get_entities('feedback');
-        $output = '';
-        $cnt = 0;
-        if (count($all)) {
-            $table = new html_table();
-            $table->head = array('#',
-                get_string('feedback_preview', 'mod_instantquiz'),
-                get_string('edit'),
-                get_string('delete'));
-            $table->data = array();
-            foreach ($all as $f) {
-                $table->data[] = array(++$cnt, $f->get_preview(),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('edit')),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('delete')));
-            }
-            $output .= html_writer::table($table);
-            $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'feedback')),
-                    get_string('edit'));
-        }
-        $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'feedback')),
-                get_string('addfeedback', 'mod_instantquiz'));
-        return $output;
-    }
-
-    /**
-     * Renders html for questions list on manage page
-     *
-     * @param instantquiz $instantquiz
-     * @return string
-     */
-    public function list_questions($instantquiz) {
-        $all = $instantquiz->get_entities('question');
-        $output = '';
-        $cnt = 0;
-        if (count($all)) {
-            $table = new html_table();
-            $table->head = array('#',
-                get_string('question_preview', 'mod_instantquiz'),
-                get_string('edit'),
-                get_string('delete'));
-            $table->data = array();
-            foreach ($all as $q) {
-                $table->data[] = array(++$cnt, $q->get_preview(),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('edit')),
-                    html_writer::link($instantquiz->manage_link(array('cmd' => 'delete', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('delete')));
-            }
-            $output .= html_writer::table($table);
-            $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'edit', 'entity' => 'question')),
-                    get_string('edit'));
-        }
-        $output .= $this->single_button($instantquiz->manage_link(array('cmd' => 'add', 'entity' => 'question')),
-                get_string('addquestion', 'mod_instantquiz'));
-        return $output;
-    }
-
-    public function render_instantquiz_collection($collection) {
+    protected function render_instantquiz_collection($collection) {
         return $this->recursive_render($collection->object);
     }
 
+    /**
+     * Helper method for render_instantquiz_collection() that renders the object recursively
+     *
+     * @param mixed $obj
+     * @return string
+     */
     public function recursive_render($obj) {
         if ($obj instanceof renderable) {
             return $this->render($obj);
@@ -201,7 +78,18 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      * @param instantquiz_feedback $feedback
      * @return string
      */
-    public function render_instantquiz_feedback($feedback) {
+    protected function render_instantquiz_feedback($feedback) {
         return $feedback->get_formatted_feedback();
+    }
+
+    /**
+     * Renderer for instantquiz_tabs object.
+     * It will be gone in 2.5 because there is already core renderable object for tabs
+     *
+     * @param instantquiz_tabs $tabs
+     * @return string
+     */
+    protected function render_instantquiz_tabs($tabs) {
+        return print_tabs($tabs->tabrows, $tabs->selected, $tabs->inactive, $tabs->activated, true);
     }
 }

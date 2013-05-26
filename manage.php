@@ -27,9 +27,6 @@ require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/locallib.php');
 
 $id = required_param('cmid', PARAM_INT); // course_module ID
-$cmd = optional_param('cmd', null, PARAM_ALPHA);
-$entity = optional_param('entity', null, PARAM_ALPHA);
-$entityids = optional_param_array('entityid', array(), PARAM_INT);
 
 $instantquiz = instantquiz_get_instantquiz($id);
 $cm = $instantquiz->get_cm();
@@ -39,29 +36,6 @@ require_login($cm->course, true, $cm);
 $context = $instantquiz->get_context();
 require_capability('moodle/course:manageactivities', $context);
 
-if ($cmd === 'add' && !empty($entity) && $instantquiz->add_entity($entity)) {
-    redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
-} else if ($cmd === 'delete' && !empty($entity) && !empty($entityids)) {
-    $instantquiz->delete_entities($entity, array_keys($entityids));
-    redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
-} else if ($cmd === 'edit' && !empty($entity)) {
-    $entities = $instantquiz->get_entities($entity);
-    if (!empty($entityids)) {
-        // Edit only specified entities
-        $entities = array_intersect_key($entities, $entityids);
-    }
-    if (!empty($entities)) {
-        $formclass = $instantquiz->get_entity_edit_form_class($entity);
-        $form = new $formclass(null, $entities);
-        if ($form->is_cancelled()) {
-            redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
-        } else if ($data = $form->get_data()) {
-            $instantquiz->update_entities($entity, $data);
-            redirect($instantquiz->manage_link(array('cmd' => 'list', 'entity' => $entity)));
-        }
-    }
-}
-
 $PAGE->set_pagelayout('incourse'); // or admin?
 $PAGE->set_title(format_string($instantquiz->name)); // TODO 2.5 replace with $cm->get_formatted_name()
 $PAGE->set_heading(format_string($PAGE->course->fullname, true, array('context' => $context)));
@@ -69,13 +43,10 @@ if ($instantquiz->template) {
     $PAGE->add_body_class(preg_replace('/_/', '-', $instantquiz->template));
 }
 $renderer = $instantquiz->get_renderer();
+$output = $instantquiz->manage_page();
 
 echo $renderer->header();
 
-echo $renderer->manage_instantquiz($instantquiz, $cmd, $entity, $entityids);
-
-if (!empty($form)) {
-    $form->display();
-}
+echo $renderer->render($output);
 
 echo $renderer->footer();

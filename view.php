@@ -57,15 +57,15 @@ if ($instantquiz->template) {
     $PAGE->add_body_class(preg_replace('/_/', '-', $instantquiz->template));
 }
 
-// Output starts here
 $renderer = $instantquiz->get_renderer();
+$output = $instantquiz->view_page();
+
 echo $renderer->header();
 
 if ($instantquiz->intro) { // Conditions to show the intro can change to look for own settings or whatever
     echo $renderer->box(format_module_intro('instantquiz', $instantquiz, $cm->id), 'generalbox mod_introbox', 'instantquizintro');
 }
 
-echo $renderer->render($instantquiz->view_page());
+echo $renderer->render($output);
 
-// Finish the page
 echo $renderer->footer();

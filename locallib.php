@@ -73,3 +73,28 @@ class instantquiz_collection implements renderable {
         $this->object = $object;
     }
 }
+
+class instantquiz_tabs implements renderable {
+    // SIMILAR OBJECT ALREADY EXISTS IN 2.5
+    var $tabrows;
+    var $selected;
+    var $inactive;
+    var $activated;
+
+    /**
+    * Constructor (copy of print_tabs() arguments)
+    *
+    * @global object
+    * @param array $tabrows An array of rows where each row is an array of tab objects
+    * @param string $selected  The id of the selected tab (whatever row it's on)
+    * @param array  $inactive  An array of ids of inactive tabs that are not selectable.
+    * @param array  $activated An array of ids of other tabs that are currently activated
+    * @param bool $return If true output is returned rather then echo'd
+    **/
+    public function __construct($tabrows, $selected=NULL, $inactive=NULL, $activated=NULL) {
+        $this->tabrows = $tabrows;
+        $this->selected = $selected;
+        $this->inactive = $inactive;
+        $this->activated = $activated;
+    }
+}

@@ -365,6 +365,159 @@ class instantquiz_instantquiz {
     }
 
     /**
+     * Content to be displayed on the manage page (/mod/instantquiz/manage.php)
+     *
+     * @return renderable
+     */
+    public function manage_page() {
+        $cmd = optional_param('cmd', null, PARAM_ALPHA);
+        $entity = optional_param('entity', null, PARAM_ALPHA);
+        $entityids = optional_param_array('entityid', array(), PARAM_INT);
+
+        // Process actions on entities (add, delete, edit)
+        if ($cmd === 'add' && !empty($entity) && $this->add_entity($entity)) {
+            redirect($this->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+        } else if ($cmd === 'delete' && !empty($entity) && !empty($entityids)) {
+            $this->delete_entities($entity, array_keys($entityids));
+            redirect($this->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+        } else if ($cmd === 'edit' && !empty($entity)) {
+            $entities = $this->get_entities($entity);
+            if (!empty($entityids)) {
+                // Edit only specified entities
+                $entities = array_intersect_key($entities, $entityids);
+            }
+            if (!empty($entities)) {
+                $formclass = $this->get_entity_edit_form_class($entity);
+                $form = new $formclass(null, $entities);
+                if ($form->is_cancelled()) {
+                    redirect($this->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+                } else if ($data = $form->get_data()) {
+                    $this->update_entities($entity, $data);
+                    redirect($this->manage_link(array('cmd' => 'list', 'entity' => $entity)));
+                }
+            }
+        }
+
+        $objects = array();
+
+        // Print manage menu (tabs)
+        $tabrows = array();
+        foreach (array('criterion', 'question', 'feedback') as $key) {
+            $linkedwhenselected = ($cmd !== 'list');
+            $tabrows[] = new tabobject($key, $this->manage_link(array('cmd' => 'list', 'entity' => $key)), $key  /* TODO string */,
+                    '', $linkedwhenselected);
+        }
+        $objects[] = new instantquiz_tabs(array($tabrows), $entity);
+
+        // Print lists of object (if applicable)
+        if ($cmd === 'list') {
+            if ($entity === 'question') {
+                $objects[] = $this->list_questions();
+            } else if ($entity === 'criterion') {
+                $objects[] = $this->list_criterions();
+            } else if ($entity === 'feedback') {
+                $objects[] = $this->list_feedbacks();
+            }
+        }
+
+        // Print form if present
+        if (!empty($form)) {
+            $objects[] = $form;
+        }
+        return new instantquiz_collection($objects);
+    }
+
+    /**
+     * Renders html for criteria list on manage page
+     *
+     * @return renderable
+     */
+    protected function list_criterions() {
+        $all = $this->get_entities('criterion');
+        $objects = array();
+        $cnt = 0;
+        if (count($all)) {
+            $table = new html_table();
+            $table->head = array('#',
+                get_string('criterion_name', 'mod_instantquiz'),
+                get_string('edit'),
+                get_string('delete'));
+            $table->data = array();
+            foreach ($all as $e) {
+                $table->data[] = array(++$cnt, $e->get_preview(),
+                    html_writer::link($this->manage_link(array('cmd' => 'edit', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('edit')),
+                    html_writer::link($this->manage_link(array('cmd' => 'delete', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('delete')));
+            }
+            $objects[] = $table;
+            $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'criterion')),
+                    get_string('edit'));
+        }
+        $objects[] = new single_button($this->manage_link(array('cmd' => 'add', 'entity' => 'criterion')),
+                get_string('addcriterion', 'mod_instantquiz'));
+        return new instantquiz_collection($objects);
+    }
+
+    /**
+     * Renders html for feedbacks list on manage page
+     *
+     * @return renderable
+     */
+    protected function list_feedbacks() {
+        $all = $this->get_entities('feedback');
+        $objects = array();
+        $cnt = 0;
+        if (count($all)) {
+            $table = new html_table();
+            $table->head = array('#',
+                get_string('feedback_preview', 'mod_instantquiz'),
+                get_string('edit'),
+                get_string('delete'));
+            $table->data = array();
+            foreach ($all as $f) {
+                $table->data[] = array(++$cnt, $f->get_preview(),
+                    html_writer::link($this->manage_link(array('cmd' => 'edit', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('edit')),
+                    html_writer::link($this->manage_link(array('cmd' => 'delete', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('delete')));
+            }
+            $objects[] = $table;
+            $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'feedback')),
+                    get_string('edit'));
+        }
+        $objects[] = new single_button($this->manage_link(array('cmd' => 'add', 'entity' => 'feedback')),
+                get_string('addfeedback', 'mod_instantquiz'));
+        return new instantquiz_collection($objects);
+    }
+
+    /**
+     * Renders html for questions list on manage page
+     *
+     * @return renderable
+     */
+    protected function list_questions() {
+        $all = $this->get_entities('question');
+        $objects = array();
+        $cnt = 0;
+        if (count($all)) {
+            $table = new html_table();
+            $table->head = array('#',
+                get_string('question_preview', 'mod_instantquiz'),
+                get_string('edit'),
+                get_string('delete'));
+            $table->data = array();
+            foreach ($all as $q) {
+                $table->data[] = array(++$cnt, $q->get_preview(),
+                    html_writer::link($this->manage_link(array('cmd' => 'edit', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('edit')),
+                    html_writer::link($this->manage_link(array('cmd' => 'delete', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('delete')));
+            }
+            $objects[] = $table;
+            $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'question')),
+                    get_string('edit'));
+        }
+        $objects[] = new single_button($this->manage_link(array('cmd' => 'add', 'entity' => 'question')),
+                get_string('addquestion', 'mod_instantquiz'));
+        return new instantquiz_collection($objects);
+    }
+
+    /**
      * Content to be displayed on the main page of the module (/mod/instantquiz/view.php)
      *
      * @return renderable
@@ -372,7 +525,8 @@ class instantquiz_instantquiz {
     public function view_page() {
         global $USER;
         $elements = array();
-        $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')), 'startnew');
+        $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
+                get_string('startattempt', 'mod_instantquiz'));
         $classname = $this->get_entity_class('attempt');
         $attempts = $classname::get_all_user_attempts($this, $USER->id);
         foreach ($attempts as &$attempt) {
@@ -403,10 +557,10 @@ class instantquiz_instantquiz {
             if (!$attempt) {
                 print_error('attemptnotfound', 'mod_instantquiz');
             }
-            if (!$attempt->can_continue_attempt()) {
+            //if (!$attempt->can_continue_attempt()) {
                 // User can not continue, print default selection
-                $attempt = null;
-            }
+                //$attempt = null;
+            //}
         }
         if (empty($attempt)) {
             $cmd = optional_param('cmd', '', PARAM_ALPHA);
