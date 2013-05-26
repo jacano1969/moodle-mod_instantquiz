@@ -52,3 +52,8 @@ $string['question_preview'] = 'Question';
 
 $string['questionoption'] = 'Option';
 $string['questionaddoption'] = 'Add option';
+
+$string['attemptnotfound'] = 'Attempt not found';
+$string['continueattempt'] = 'Continue attempt {$a->attemptnumber} started at {$a->timestarted}';
+$string['viewattempt'] = 'View attempt {$a->attemptnumber} started at {$a->timestarted}';
+$string['startattempt'] = 'Start new attempt';

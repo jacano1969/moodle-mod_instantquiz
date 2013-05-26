@@ -38,7 +38,7 @@ class instantquiz_attempt extends instantquiz_entity {
     var $userid;
     var $timestarted;
     var $timefinished;
-    var $attemptnumber; // TODO rename to sortorder?
+    var $attemptnumber;
     var $overriden;
     var $answers;
     var $points;
@@ -176,6 +176,7 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
+     * Checks if user can continue current attempt (i.e. attempt is not finished and not expired)
      *
      * @return bool
      */
@@ -184,46 +185,41 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
+     * Returns the answer entered in this attempt for a particular question
      *
+     * @param int $questionid
+     * @return mixed
+     */
+    public function get_answer($questionid) {
+        if (isset($this->answers[$questionid])) {
+            return $this->answers[$questionid];
+        }
+        return null;
+    }
+
+    /**
+     * Evaluates this attempt and updates the record in DB
      */
     public function evaluate() {
         $criteria = $this->instantquiz->get_entities('criterion');
-        $criteriaids = array_keys($criteria);
-        $questions = $this->instantquiz->get_entities('question');
-        $evaluatedfeedbacks = array();
 
-        // Get number of points for each criterion
-        $points = array_fill_keys($criteriaids, 0);
+        // Summarize number of points for each question
+        $questions = $this->instantquiz->get_entities('question');
+        $points = array_fill_keys(array_keys($criteria), 0);
         foreach ($questions as $id => $question) {
-            if (isset($this->answers[$id])) {
-                $answer = $this->answers[$id];
-                if (!is_array($answer)) {
-                    $answer = array($answer => 1);
-                }
-                foreach ($question->options as $option) {
-                    if (array_key_exists($option['idx'], $answer)) {
-                        // get the points for an answer
-                        foreach ($option['points'] as $critid => $pts) {
-                            if (isset($points[$critid])) {
-                                $points[$critid] += $pts;
-                            }
-                        }
-                    }
+            $questionpoints = $question->earned_points($this->get_answer($id));
+            foreach ($points as $critid => $pts) {
+                if (!empty($questionpoints[$critid])) {
+                    $points[$critid] += $questionpoints[$critid];
                 }
             }
         }
 
         // Evaluate formula for each feedback and find list of feedbacks for this instantquiz
         $feedbacks = $this->instantquiz->get_entities('feedback');
+        $evaluatedfeedbacks = array();
         foreach ($feedbacks as $fid => &$feedback) {
-            $formula = $feedback->addinfo['formula'];
-            foreach ($criteria as $critid => $criterion) {
-                $xcriterion = preg_quote('${'.$criterion->criterion.'}', '/');
-                $formula = preg_replace("/$xcriterion/i", $points[$critid], $formula);
-            }
-            $formula = preg_replace("/\$\{\}/i", 0, $formula); // replace misspelled criteria
-            $formulavalid = eval('return '.$formula.';'); // TODO dangerous!!!!!
-            if ($formulavalid) {
+            if ($feedback->is_applicable($points)) {
                 $evaluatedfeedbacks[] = $fid;
             }
         }

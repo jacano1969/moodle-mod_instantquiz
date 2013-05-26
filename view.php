@@ -65,7 +65,7 @@ if ($instantquiz->intro) { // Conditions to show the intro can change to look fo
     echo $renderer->box(format_module_intro('instantquiz', $instantquiz, $cm->id), 'generalbox mod_introbox', 'instantquizintro');
 }
 
-echo $renderer->render($instantquiz->user_attempts());
+echo $renderer->render($instantquiz->view_page());
 
 // Finish the page
 echo $renderer->footer();

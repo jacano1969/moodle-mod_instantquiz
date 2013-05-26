@@ -364,58 +364,69 @@ class instantquiz_instantquiz {
         return $PAGE->get_renderer('mod_instantquiz');
     }
 
-    public function user_attempts($user = null) {
+    /**
+     * Content to be displayed on the main page of the module (/mod/instantquiz/view.php)
+     *
+     * @return renderable
+     */
+    public function view_page() {
         global $USER;
-        if ($user === null) {
-            $user = $USER;
-        }
-        if (is_object($user)) {
-            $userid = $user->id;
-        } else {
-            $userid = $user;
-        }
         $elements = array();
         $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')), 'startnew');
         $classname = $this->get_entity_class('attempt');
-        $attempts = $classname::get_all_user_attempts($this, $userid);
+        $attempts = $classname::get_all_user_attempts($this, $USER->id);
         foreach ($attempts as &$attempt) {
+            $obj = (object)array('attemptnumber' => $attempt->attemptnumber,
+                'timestarted' => userdate($attempt->timestarted));
             if ($attempt->can_continue_attempt()) {
-                $label = 'Continue attempt '. $attempt->attemptnumber.' started at '.userdate($attempt->timestarted);
+                $label = get_string('continueattempt', 'mod_instantquiz', $obj);
             } else {
-                $label = 'View attempt '. $attempt->attemptnumber.' started at '.userdate($attempt->timestarted);
+                $label = get_string('viewattempt', 'mod_instantquiz', $obj);
             }
             $elements[] = new single_button($this->attempt_link(array('attemptid' => $attempt->id)), $label);
         }
         return new instantquiz_collection($elements);
     }
 
-    public function attempt_instantquiz() {
+    /**
+     * Content to be displayed on the attempt page of the module (/mod/instantquiz/attempt.php)
+     *
+     * @return renderable
+     */
+    public function attempt_page() {
         global $USER;
         $classname = $this->get_entity_class('attempt');
-        // Let's see maybe there is already attempt in progres
         $attemptid = optional_param('attemptid', 0, PARAM_INT);
-        $cmd = optional_param('cmd', '', PARAM_ALPHA);
         if ($attemptid) {
-            // Validate that it belongs to this user
+            // Validate that it belongs to this user and can be continued
             $attempt = $classname::get_user_attempt($this, $USER->id, $attemptid);
-            // TODO print error or something if attempt not found
-            // TODO check can_continue_attempt()
+            if (!$attempt) {
+                print_error('attemptnotfound', 'mod_instantquiz');
+            }
+            if (!$attempt->can_continue_attempt()) {
+                // User can not continue, print default selection
+                $attempt = null;
+            }
         }
         if (empty($attempt)) {
+            $cmd = optional_param('cmd', '', PARAM_ALPHA);
             if ($cmd === 'startnew') {
+                // Create new attempt
                 $attempt = $classname::create($this);
-            } else
-            // Try to see if user has uncompleted attempts
-            if (($lastattempt = $classname::get_user_attempt($this, $USER->id)) && $lastattempt->can_continue_attempt()) {
+            } else if (($lastattempt = $classname::get_user_attempt($this, $USER->id)) && $lastattempt->can_continue_attempt()) {
+                // User has incompleted attempt but he did not specify id in the query, offer to continue or start new
                 $elements = array();
-                $elements[] = 'No current attempt';
-                $elements[] = new single_button($this->attempt_link(array('attemptid' => $lastattempt->id)), 'continue last'); // TODO continue last
-                $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')), 'startnew'); // TODO start new
+                $obj = (object)array('attemptnumber' => $attempt->attemptnumber,
+                    'timestarted' => userdate($attempt->timestarted));
+                $elements[] = new single_button($this->attempt_link(array('attemptid' => $lastattempt->id)),
+                        get_string('continueattempt', 'mod_instantquiz', $obj));
+                $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
+                        get_string('startattempt', 'mod_instantquiz'));
                 return new instantquiz_collection($elements);
             } else {
                 $elements = array();
-                $elements[] = 'Start new attempt?';
-                $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')), 'startnew'); // TODO start new
+                $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
+                        get_string('startattempt', 'mod_instantquiz'));
                 return new instantquiz_collection($elements);
             }
         }

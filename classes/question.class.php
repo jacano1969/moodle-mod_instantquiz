@@ -91,6 +91,34 @@ class instantquiz_question extends instantquiz_entity {
     }
 
     /**
+     * Calculates the number of points earned for particular answer
+     *
+     * @param mixed $answer answer stored for this question
+     * @return array array of points earned, indexed by criterion id
+     */
+    public function earned_points($answer) {
+        if ($answer === null) {
+            return array();
+        }
+        if (!is_array($answer)) {
+            $answer = array($answer => 1);
+        }
+        $points = array();
+        foreach ($this->options as $option) {
+            if (array_key_exists($option['idx'], $answer)) {
+                // get the points for an answer
+                foreach ($option['points'] as $critid => $pts) {
+                    if (!isset($points[$critid])) {
+                        $points[$critid] = 0;
+                    }
+                    $points[$critid] += $pts;
+                }
+            }
+        }
+        return $points;
+    }
+
+    /**
      * Updates or creates entry in DB
      */
     public function update() {

@@ -43,7 +43,7 @@ if ($instantquiz->template) {
     $PAGE->add_body_class(preg_replace('/_/', '-', $instantquiz->template));
 }
 $renderer = $instantquiz->get_renderer();
-$output = $instantquiz->attempt_instantquiz();
+$output = $instantquiz->attempt_page();
 
 echo $renderer->header();
 

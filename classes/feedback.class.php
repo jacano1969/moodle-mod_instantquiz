@@ -101,12 +101,43 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
         }
     }
 
+    /**
+     * Evaluates if the points earned in the current attempt match this feedback display condition (formula)
+     *
+     * @param array $points number of points for each criterion (indexed by criterion id)
+     * @return bool
+     */
+    public function is_applicable($points) {
+        $formula = $this->addinfo['formula'];
+        $criteria = $this->instantquiz->get_entities('criterion');
+        foreach ($criteria as $critid => $criterion) {
+            $xcriterion = preg_quote('${'.$criterion->criterion.'}', '/');
+            $formula = preg_replace("/$xcriterion/i", $points[$critid], $formula);
+        }
+        // replace misspelled criteria with 0 points
+        $formula = preg_replace("/\$\{\}/i", 0, $formula);
+        // TODO check that $formula contains only allowed tokens. eval() is dangerous!
+        return eval('return '.$formula.';');
+    }
+
+    /**
+     * Static default feedback displayed when none of defined feedbacks are applicable (usually 'Thank you')
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @return instantquiz_feedback
+     */
     public static function get_default_feedback($instantquiz) {
         return new static($instantquiz,
                 (object)array('feedback' => 'Thank you',
                     'feedbackformat' => FORMAT_HTML));
     }
 
+    /**
+     * Returns the text of the feedback formatted for display
+     *
+     * @param array $params additional params to pass to format_text()
+     * @return string
+     */
     public function get_formatted_feedback($params = array()) {
         return format_text($this->feedback, $this->feedbackformat,
             array('context' => $this->instantquiz->get_context()) + $params);
