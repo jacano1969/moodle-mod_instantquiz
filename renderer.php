@@ -42,7 +42,6 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     protected function render_instantquiz_collection($collection) {
         $output = '';
         if ($collection->object instanceof renderable) {
-            echo get_class($collection->object)."<br>";
             $output .= $this->render($collection->object);
         } else if (is_array($collection->object)) {
             foreach ($collection->object as $value) {
