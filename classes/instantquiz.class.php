@@ -527,7 +527,7 @@ class instantquiz_instantquiz {
         $elements = array();
         $context = $this->get_context();
         if (has_capability('mod/instantquiz:attempt', $context)) {
-            $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
+            $elements[] = new single_button($this->attempt_link(array('attemptid' => 'startnew')),
                     get_string('startattempt', 'mod_instantquiz'));
         }
         $classname = $this->get_entity_class('attempt');
@@ -553,42 +553,25 @@ class instantquiz_instantquiz {
     public function attempt_page() {
         global $USER;
         $classname = $this->get_entity_class('attempt');
-        $attemptid = optional_param('attemptid', 0, PARAM_INT);
-        if ($attemptid) {
+        $attemptid = required_param('attemptid', PARAM_ALPHANUM);
+        $viewurl = new moodle_url('/mod/instantquiz/view.php', array('id' => $this->cm->id));
+        if ((int)$attemptid) {
             // Validate that it belongs to this user and can be continued
-            $attempt = $classname::get_user_attempt($this, $USER->id, $attemptid);
+            $attempt = $classname::get_user_attempt($this, $USER->id, (int)$attemptid);
             if (!$attempt) {
-                print_error('attemptnotfound', 'mod_instantquiz');
+                print_error('attemptnotfound', 'mod_instantquiz', $viewurl);
             }
             //if (!$attempt->can_continue_attempt()) {
                 // User can not continue, print default selection
                 //$attempt = null;
             //}
+        } else if ($attemptid === 'startnew') {
+            // Create new attempt
+            $attempt = $classname::create($this);
         }
-        if (empty($attempt)) {
-            $cmd = optional_param('cmd', '', PARAM_ALPHA);
-            if ($cmd === 'startnew') {
-                // Create new attempt
-                $attempt = $classname::create($this);
-            } else if (($lastattempt = $classname::get_user_attempt($this, $USER->id)) && $lastattempt->can_continue_attempt()) {
-                // User has incompleted attempt but he did not specify id in the query, offer to continue or start new
-                $elements = array();
-                $obj = (object)array('attemptnumber' => $attempt->attemptnumber,
-                    'timestarted' => userdate($attempt->timestarted));
-                $elements[] = new single_button($this->attempt_link(array('attemptid' => $lastattempt->id)),
-                        get_string('continueattempt', 'mod_instantquiz', $obj));
-                $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
-                        get_string('startattempt', 'mod_instantquiz'));
-                return new instantquiz_collection($elements);
-            } else {
-                $elements = array();
-                $elements[] = new single_button($this->attempt_link(array('cmd' => 'startnew')),
-                        get_string('startattempt', 'mod_instantquiz'));
-                return new instantquiz_collection($elements);
-            }
+        if (!empty($attempt)) {
+            return $attempt->continue_attempt();
         }
-
-        // So, we have current attempt
-        return $attempt->continue_attempt();
+        redirect($viewurl);
     }
 }
