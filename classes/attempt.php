@@ -61,6 +61,9 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return instantquiz_attempt
      */
     public static function create($instantquiz) {
+        if (!self::can_start_attempt($instantquiz)) {
+            return null;
+        }
         global $USER, $DB;
         $maxattempt = $DB->get_field_sql("SELECT max(attemptnumber)
             FROM {instantquiz_attempt}
@@ -129,11 +132,12 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
-     * Returns truncated and simply formatted criterion name to display on the manage page
+     * Returns truncated and simply formatted name to display on the manage page
      *
      * @return string
      */
     public function get_preview() {
+        // not applicable for attempts
         return null;
     }
 
@@ -185,8 +189,16 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return bool
      */
     public function can_continue_attempt() {
-        $context = $this->instantquiz->get_context();
-        return !$this->timefinished && has_capability('mod/instantquiz:attempt', $context);
+        global $USER;
+        return $USER->id == $this->userid && !$this->timefinished;
+    }
+
+    public function can_view_attempt() {
+        return true;
+    }
+
+    public static function can_start_attempt($instantquiz) {
+        return true;
     }
 
     /**
@@ -249,8 +261,11 @@ class instantquiz_attempt extends instantquiz_entity {
      */
     public function review_attempt() {
         $rv = array();
-        foreach ($this->instantquiz->get_entities('question') as $question) {
-            $rv[] = $question->review($this);
+        if ($this->can_view_attempt()) {
+            foreach ($this->instantquiz->get_entities('question') as $question) {
+                $rv[] = $question->review($this);
+            }
+            $rv[] = $this->show_feedback();
         }
         return new instantquiz_collection($rv);
     }
@@ -283,8 +298,8 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return renderable
      */
     public function continue_attempt() {
-        if ($this->timefinished) {
-            return $this->show_feedback();
+        if (!$this->can_continue_attempt()) {
+            return new instantquiz_collection(array());
         }
         $formclassname = $this->instantquiz->get_entity_edit_form_class('attempt');
         $form = new $formclassname(null, $this);
@@ -312,8 +327,11 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return renderable
      */
     public static function start_new_attempt($instantquiz) {
-        $attempt = static::create($instantquiz);
-        return $attempt->continue_attempt();
+        if ($attempt = static::create($instantquiz)) {
+            return $attempt->continue_attempt();
+        } else {
+            print_error('Not allowed'); // TODO
+        }
     }
 
     /**

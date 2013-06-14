@@ -60,7 +60,3 @@ $string['startattempt'] = 'Start new attempt';
 
 $string['instantquiz:view'] = 'View and attempt instantquiz ';
 $string['instantquiz:addinstance'] = 'Add a new instantquiz';
-$string['instantquiz:attempt'] = 'Attempt instantquiz';
-$string['instantquiz:viewsummary'] = 'View instantquiz attempts summary';
-$string['instantquiz:viewanyattempt'] = 'View any instantquiz attempt';
-$string['instantquiz:viewownattempt'] = 'Review own attempt after completion';

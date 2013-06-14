@@ -525,11 +525,11 @@ class instantquiz_instantquiz {
         global $USER;
         $elements = array();
         $context = $this->get_context();
-        if (has_capability('mod/instantquiz:attempt', $context)) {
+        $classname = $this->get_entity_class('attempt');
+        if ($classname::can_start_attempt($this)) {
             $elements[] = new single_button($this->attempt_link(array('attemptid' => 'startnew')),
                     get_string('startattempt', 'mod_instantquiz'));
         }
-        $classname = $this->get_entity_class('attempt');
         $attempts = $classname::get_all_user_attempts($this, $USER->id);
         foreach ($attempts as &$attempt) {
             $obj = (object)array('attemptnumber' => $attempt->attemptnumber,
@@ -537,7 +537,7 @@ class instantquiz_instantquiz {
             if ($attempt->can_continue_attempt()) {
                 $label = get_string('continueattempt', 'mod_instantquiz', $obj);
                 $elements[] = new single_button($this->attempt_link(array('attemptid' => $attempt->id)), $label);
-            } else {
+            } else if ($attempt->can_view_attempt()) {
                 $label = get_string('viewattempt', 'mod_instantquiz', $obj);
                 $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
             }
@@ -561,12 +561,10 @@ class instantquiz_instantquiz {
             if (!$attempt) {
                 print_error('attemptnotfound', 'mod_instantquiz', $viewurl);
             }
-            //if (!$attempt->can_continue_attempt()) {
-                // User can not continue, print default selection
-                //$attempt = null;
-            //}
-            return $attempt->continue_attempt();
-        } else if ($attemptid === 'startnew') {
+            if ($attempt->can_continue_attempt()) {
+                return $attempt->continue_attempt();
+            }
+        } else if ($attemptid === 'startnew' && $classname::can_start_attempt($this)) {
             // Create new attempt
             return $classname::start_new_attempt($this);
         }
@@ -581,18 +579,31 @@ class instantquiz_instantquiz {
         $userid = optional_param('userid', null, PARAM_INT);
         $classname = $this->get_entity_class('attempt');
         if ((int)$attemptid && ($attempt = $classname::get_user_attempt($this, $userid, $attemptid))) {
-            return $attempt->review_attempt();
-        } else if ($attemptid === 'all' && $userid && ($attempt = $classname::get_user_attempt($this, $userid))) {
-            return $attempt->review_attempt();
+            if ($attempt->can_view_attempt()) {
+                return $attempt->review_attempt();
+            } else {
+                print_error('Not allowd'); // TODO
+            }
+        } else if ($attemptid === 'all' && $userid) {
+            $attempts = $classname::get_all_user_attempts($this, $userid);
+        } else {
+            $attempts = $classname::attempts_list($this);
         }
-        $attempts = $classname::attempts_list($this);
-        $rv = new instantquiz_table();
+        $data = array();
         foreach ($attempts as $attempt) {
-            $rv->data[] = new html_table_row(array(
-                html_writer::link($this->results_link(array('attemptid' => $attempt->id)), 'USER '.$attempt->userid.' at '.
-                        userdate($attempt->timefinished))
-            ));
+            if ($attempt->can_view_attempt()) {
+                $data[] = new html_table_row(array(
+                    html_writer::link($this->results_link(array('attemptid' => $attempt->id)), 'USER '.$attempt->userid.' at '.
+                            userdate($attempt->timefinished))
+                ));
+            }
         }
-        return new instantquiz_collection($rv);
+        if (!empty($data)) {
+            $table = new instantquiz_table();
+            $table->data = $data;
+            return $table;
+        } else {
+            return new instantquiz_collection(array());
+        }
     }
 }

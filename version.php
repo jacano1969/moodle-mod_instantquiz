@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2013052700;
+$module->version   = 2013061500;
 $module->requires  = 2012120300;        // Requires Moodle 2.4
 $module->cron      = 0;                 // Period for cron to check this module (secs)
 $module->component = 'mod_instantquiz'; // To check on upgrade, that module sits in correct place
