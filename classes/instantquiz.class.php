@@ -565,12 +565,10 @@ class instantquiz_instantquiz {
                 // User can not continue, print default selection
                 //$attempt = null;
             //}
+            return $attempt->continue_attempt();
         } else if ($attemptid === 'startnew') {
             // Create new attempt
-            $attempt = $classname::create($this);
-        }
-        if (!empty($attempt)) {
-            return $attempt->continue_attempt();
+            return $classname::start_new_attempt($this);
         }
         redirect($viewurl);
     }

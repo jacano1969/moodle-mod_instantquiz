@@ -147,7 +147,11 @@ class instantquiz_attempt extends instantquiz_entity {
     public static function get_user_attempt($instantquiz, $userid, $attemptid = 0) {
         global $DB;
         if ($attemptid) {
-            $record = $DB->get_record('instantquiz_attempt', array('userid' => $userid, 'id' => $attemptid));
+            if ($userid) {
+                $record = $DB->get_record('instantquiz_attempt', array('userid' => $userid, 'id' => $attemptid));
+            } else {
+                $record = $DB->get_record('instantquiz_attempt', array('id' => $attemptid));
+            }
         } else {
             if ($records = $DB->get_records('instantquiz_attempt', array('userid' => $userid), 'attemptnumber desc', '*', 0, 1)) {
                 $record = reset($records);
@@ -289,5 +293,15 @@ class instantquiz_attempt extends instantquiz_entity {
             }
         }
         return new instantquiz_collection($form);
+    }
+
+    /**
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @return renderable
+     */
+    public static function start_new_attempt($instantquiz) {
+        $attempt = static::create($instantquiz);
+        return $attempt->continue_attempt();
     }
 }
