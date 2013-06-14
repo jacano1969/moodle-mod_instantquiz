@@ -46,7 +46,7 @@ function instantquiz_get_instantquiz($cm, $instantquizid = null) {
         $cm = get_coursemodule_from_instance('instantquiz', $record->id, $record->course, false, MUST_EXIST);
     }
 
-    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.class.php');
+    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
     $classname = instantquiz_instantquiz::get_instantquiz_class($record->template);
     $instantquiz = new $classname($cm, $record);
     return $instantquiz;

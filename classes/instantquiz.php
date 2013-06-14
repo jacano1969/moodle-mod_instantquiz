@@ -204,9 +204,9 @@ class instantquiz_instantquiz {
      * Loads file and returns the appropriate classname
      *
      * Tries to find the class with name [template]_[classsuffix] in file
-     * [templateplugindir]/classes/[classsuffix].class.php
+     * [templateplugindir]/classes/[classsuffix].php
      * If it fails, tries to locate the class instantquiz_[classsuffix]
-     * in file /mod/instantquiz/template/classes/[classsuffix].class.php
+     * in file /mod/instantquiz/template/classes/[classsuffix].php
      * If neither is found returns null
      *
      * @param string $template full frankenstyle name of the instantquiztmpl plugin
@@ -233,7 +233,7 @@ class instantquiz_instantquiz {
         if (strlen($template)) {
             $filepath = $CFG->dirroot.'/mod/instantquiz/template/'.
                     preg_replace('/^instantquiztmpl_/', '', $template).
-                    '/classes/'.$classsuffix.'.class.php';
+                    '/classes/'.$classsuffix.'.php';
             if (file_exists($filepath)) {
                 require_once($filepath);
                 if (class_exists($classname)) {
@@ -242,7 +242,7 @@ class instantquiz_instantquiz {
             }
         }
 
-        $deffilepath = $CFG->dirroot. '/mod/instantquiz/classes/'.$classsuffix.'.class.php';
+        $deffilepath = $CFG->dirroot. '/mod/instantquiz/classes/'.$classsuffix.'.php';
         if (file_exists($deffilepath)) {
             require_once($deffilepath);
             if (class_exists($defclassname)) {

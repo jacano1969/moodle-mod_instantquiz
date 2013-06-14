@@ -87,7 +87,7 @@ class mod_instantquiz_mod_form extends moodleform_mod {
         $mform = $this->_form;
         $templatevalue = $mform->getElementValue('template');
         if (is_array($templatevalue) && !empty($templatevalue)) {
-            require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.class.php');
+            require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
             $classname = instantquiz_instantquiz::get_instantquiz_class($templatevalue[0]);
 
             $elements = $classname::edit_form_elements($mform);

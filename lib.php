@@ -66,7 +66,7 @@ function instantquiz_supports($feature) {
  */
 function instantquiz_add_instance(stdClass $data, mod_instantquiz_mod_form $mform = null) {
     global $CFG;
-    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.class.php');
+    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
     $classname = instantquiz_instantquiz::get_instantquiz_class($data->template);
     return $classname::create($data, $mform);
 }
