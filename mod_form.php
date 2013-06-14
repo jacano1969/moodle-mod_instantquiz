@@ -65,9 +65,13 @@ class mod_instantquiz_mod_form extends moodleform_mod {
 
         $mform->addElement('header', 'instantquiz', get_string('modulename', 'mod_instantquiz'));
         $mform->addElement('select', 'template', get_string('subplugintype_instantquiztmpl', 'mod_instantquiz'), instantquiz_get_templates());
-        // button to update format-specific options on format change (will be hidden by JavaScript)
-        $mform->registerNoSubmitButton('updatetemplate');
-        $mform->addElement('submit', 'updatetemplate', get_string('update'), array('class' => 'hiddenifjs'));
+        if ($this->_cm) {
+            $mform->hardFreeze('template');
+        } else {
+            // button to update format-specific options on format change (will be hidden by JavaScript)
+            $mform->registerNoSubmitButton('updatetemplate');
+            $mform->addElement('submit', 'updatetemplate', get_string('update'), array('class' => 'hiddenifjs'));
+        }
         $mform->addElement('hidden', 'addtemplateoptionshere');
 
         //-------------------------------------------------------------------------------
@@ -90,7 +94,7 @@ class mod_instantquiz_mod_form extends moodleform_mod {
             require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
             $classname = instantquiz_instantquiz::get_instantquiz_class($templatevalue[0]);
 
-            $elements = $classname::edit_form_elements($mform);
+            $elements = $classname::edit_form_elements($mform, $this->_cm);
             for ($i = 0; $i < count($elements); $i++) {
                 $mform->insertElementBefore($mform->removeElement($elements[$i]->getName(), false),
                         'addtemplateoptionshere');

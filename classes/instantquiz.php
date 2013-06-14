@@ -58,9 +58,10 @@ class instantquiz_instantquiz {
      * Very important to return an array of added elements
      *
      * @param mod_instantquiz_mod_form $mform
+     * @patam stdClass|modinfo $cm course module being updated, null if it is being created
      * @return array array of elements that were added to the form
      */
-    public static function edit_form_elements($mform) {
+    public static function edit_form_elements($mform, $cm) {
         $elements = array();
         // Example:
         // $elements[] = $mform->addElement('text', 'elementname', get_string('elementname', 'instantquiztmpl_xxx')),
@@ -104,14 +105,8 @@ class instantquiz_instantquiz {
     public function update(stdClass $data, mod_instantquiz_mod_form $mform = null, $previoustemplate = false) {
         global $DB;
 
-        // Check if the template is changed
-        if ($data->template !== $this->record->template) {
-            $DB->update_record('instantquiz', array('id' => $this->record->id, 'template' => $data->template));
-            $newobject = instantquiz_get_instantquiz($this->cm);
-            $newobject->update($data, $mform, $this->record->template);
-            // When overwriting include here deleting of template-specific data
-            return true;
-        }
+        // Template can not be changed after instantquiz was created
+        unset($data->template);
 
         $data->timemodified = time();
 
