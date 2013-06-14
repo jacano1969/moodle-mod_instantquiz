@@ -186,6 +186,10 @@ class instantquiz_instantquiz {
         return new moodle_url('/mod/instantquiz/attempt.php', array('cmid' => $this->cm->id) + $params);
     }
 
+    public function results_link($params = array()) {
+        return new moodle_url('/mod/instantquiz/results.php', array('cmid' => $this->cm->id) + $params);
+    }
+
     /**
      * Given the name of the template tries to locate a main instantquiz class for it
      *
@@ -537,10 +541,11 @@ class instantquiz_instantquiz {
                 'timestarted' => userdate($attempt->timestarted));
             if ($attempt->can_continue_attempt()) {
                 $label = get_string('continueattempt', 'mod_instantquiz', $obj);
+                $elements[] = new single_button($this->attempt_link(array('attemptid' => $attempt->id)), $label);
             } else {
                 $label = get_string('viewattempt', 'mod_instantquiz', $obj);
+                $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
             }
-            $elements[] = new single_button($this->attempt_link(array('attemptid' => $attempt->id)), $label);
         }
         return new instantquiz_collection($elements);
     }
@@ -571,5 +576,28 @@ class instantquiz_instantquiz {
             return $classname::start_new_attempt($this);
         }
         redirect($viewurl);
+    }
+
+    /**
+     * @return renderable
+     */
+    public function results_page() {
+        $attemptid = optional_param('attemptid', null, PARAM_RAW);
+        $userid = optional_param('userid', null, PARAM_INT);
+        $classname = $this->get_entity_class('attempt');
+        if ((int)$attemptid && ($attempt = $classname::get_user_attempt($this, $userid, $attemptid))) {
+            return $attempt->review_attempt();
+        } else if ($attemptid === 'all' && $userid && ($attempt = $classname::get_user_attempt($this, $userid))) {
+            return $attempt->review_attempt();
+        }
+        $attempts = $classname::attempts_list($this);
+        $rv = new instantquiz_table();
+        foreach ($attempts as $attempt) {
+            $rv->data[] = new html_table_row(array(
+                html_writer::link($this->results_link(array('attemptid' => $attempt->id)), 'USER '.$attempt->userid.' at '.
+                        userdate($attempt->timefinished))
+            ));
+        }
+        return new instantquiz_collection($rv);
     }
 }

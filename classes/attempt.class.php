@@ -245,6 +245,17 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
+     * @return renderable
+     */
+    public function review_attempt() {
+        $rv = array();
+        foreach ($this->instantquiz->get_entities('question') as $question) {
+            $rv[] = $question->review($this);
+        }
+        return new instantquiz_collection($rv);
+    }
+
+    /**
      *
      * @return renderable
      */
@@ -303,5 +314,23 @@ class instantquiz_attempt extends instantquiz_entity {
     public static function start_new_attempt($instantquiz) {
         $attempt = static::create($instantquiz);
         return $attempt->continue_attempt();
+    }
+
+    /**
+     * @return array
+     */
+    public static function attempts_list($instantquiz) {
+        global $DB;
+        $rv = array();
+        if ($records = $DB->get_records_sql('SELECT * FROM {instantquiz_attempt}
+            WHERE instantquizid = ?
+            AND timefinished is not null
+            AND overriden = 0
+            ORDER BY timefinished desc', array($instantquiz->id))) {
+            foreach ($records as $record) {
+                $rv[] = new static($instantquiz, $record);
+            }
+        }
+        return $rv;
     }
 }

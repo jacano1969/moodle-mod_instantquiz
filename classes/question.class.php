@@ -183,4 +183,18 @@ class instantquiz_question extends instantquiz_entity {
         }
         return $preview;
     }
+
+    /**
+     * @param instantquiz_attempt $attempt
+     * @return renderable
+     */
+    public function review($attempt) {
+        $answer = $attempt->get_answer($this->id);
+        $preview = format_text($this->question, $this->questionformat,
+            array('context' => $this->instantquiz->get_context())).
+                print_r($answer,true);
+        $table = new instantquiz_table();
+        $table->data = array(new html_table_row(array(new html_table_cell($preview))));
+        return $table;
+    }
 }
