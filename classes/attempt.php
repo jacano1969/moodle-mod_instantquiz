@@ -152,12 +152,16 @@ class instantquiz_attempt extends instantquiz_entity {
         global $DB;
         if ($attemptid) {
             if ($userid) {
-                $record = $DB->get_record('instantquiz_attempt', array('userid' => $userid, 'id' => $attemptid));
+                $record = $DB->get_record('instantquiz_attempt',
+                        array('userid' => $userid, 'id' => $attemptid, 'instantquizid' => $instantquiz->id));
             } else {
-                $record = $DB->get_record('instantquiz_attempt', array('id' => $attemptid));
+                $record = $DB->get_record('instantquiz_attempt',
+                        array('id' => $attemptid, 'instantquizid' => $instantquiz->id));
             }
         } else {
-            if ($records = $DB->get_records('instantquiz_attempt', array('userid' => $userid), 'attemptnumber desc', '*', 0, 1)) {
+            if ($records = $DB->get_records('instantquiz_attempt',
+                    array('userid' => $userid, 'instantquizid' => $instantquiz->id),
+                    'attemptnumber desc', '*', 0, 1)) {
                 $record = reset($records);
             }
         }
@@ -175,7 +179,8 @@ class instantquiz_attempt extends instantquiz_entity {
     public static function get_all_user_attempts($instantquiz, $userid) {
         global $DB;
         $rv = array();
-        if ($records = $DB->get_records('instantquiz_attempt', array('userid' => $userid), 'attemptnumber desc')) {
+        if ($records = $DB->get_records('instantquiz_attempt',
+                array('userid' => $userid, 'instantquizid' => $instantquiz->id), 'attemptnumber desc')) {
             foreach ($records as $record) {
                 $rv[] = new static($instantquiz, $record);
             }
