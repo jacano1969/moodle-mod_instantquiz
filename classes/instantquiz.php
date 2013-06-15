@@ -186,88 +186,6 @@ class instantquiz_instantquiz {
     }
 
     /**
-     * Given the name of the template tries to locate a main instantquiz class for it
-     *
-     * @param string $template
-     * @return string name of the class
-     */
-    public static final function get_instantquiz_class($template) {
-        return self::locate_template_class($template, 'instantquiz');
-    }
-
-    /**
-     * Loads file and returns the appropriate classname
-     *
-     * Tries to find the class with name [template]_[classsuffix] in file
-     * [templateplugindir]/classes/[classsuffix].php
-     * If it fails, tries to locate the class instantquiz_[classsuffix]
-     * in file /mod/instantquiz/template/classes/[classsuffix].php
-     * If neither is found returns null
-     *
-     * @param string $template full frankenstyle name of the instantquiztmpl plugin
-     * @param string $classsuffix
-     * @return string|null
-     */
-    protected static final function locate_template_class($template, $classsuffix) {
-        global $CFG;
-        static $locatedclasses = array();
-        $defclassname = 'instantquiz_'. $classsuffix;
-        if (strlen($template)) {
-            $classname = $template. '_'. $classsuffix;
-        } else {
-            $classname = $defclassname;
-        }
-        if (array_key_exists($classname, $locatedclasses)) {
-            return $locatedclasses[$classname];
-        }
-
-        if (class_exists($classname)) {
-            return $locatedclasses[$classname] = $classname;
-        }
-
-        if (strlen($template)) {
-            $filepath = $CFG->dirroot.'/mod/instantquiz/template/'.
-                    preg_replace('/^instantquiztmpl_/', '', $template).
-                    '/classes/'.$classsuffix.'.php';
-            if (file_exists($filepath)) {
-                require_once($filepath);
-                if (class_exists($classname)) {
-                    return $locatedclasses[$classname] = $classname;
-                }
-            }
-        }
-
-        $deffilepath = $CFG->dirroot. '/mod/instantquiz/classes/'.$classsuffix.'.php';
-        if (file_exists($deffilepath)) {
-            require_once($deffilepath);
-            if (class_exists($defclassname)) {
-                return $locatedclasses[$classname] = $defclassname;
-            }
-        }
-        return $locatedclasses[$classname] = null;
-    }
-
-    /**
-     * Returns a classname (and loads the appropriate php file) for specified entity (question, feedback, criterion)
-     *
-     * @param string $entitytype
-     * @return string|null
-     */
-    public function get_entity_class($entitytype) {
-        return $this->locate_template_class($this->record->template, $entitytype);
-    }
-
-    /**
-     * Returns a classname (and loads the appropriate php file) for specified entity edit form (question, feedback, criterion)
-     *
-     * @param string $entitytype
-     * @return string|null
-     */
-    public function get_entity_edit_form_class($entitytype) {
-        return $this->locate_template_class($this->record->template, $entitytype. '_form');
-    }
-
-    /**
      * Updates multiple entities with the results of the corresponding form
      *
      * @param string $entitytype
@@ -295,10 +213,8 @@ class instantquiz_instantquiz {
      * @return instantquiz_entity
      */
     public function add_entity($entitytype) {
-        if ($classname = $this->get_entity_class($entitytype)) {
-            return $classname::create($this);
-        }
-        return null;
+        $classname = $this->template. '_'. $entitytype;
+        return $classname::create($this);
     }
 
     /**
@@ -307,10 +223,8 @@ class instantquiz_instantquiz {
      * @return array of instantquiz_criterion
      */
     public function get_entities($entitytype) {
-        if ($classname = $this->get_entity_class($entitytype)) {
-            return $classname::get_all($this);
-        }
-        return array();
+        $classname = $this->template. '_'. $entitytype;
+        return $classname::get_all($this);
     }
 
     /**
@@ -334,10 +248,8 @@ class instantquiz_instantquiz {
      * @return array of instantquiz_criterion
      */
     public function get_entity($entitytype, $entityid) {
-        if ($classname = $this->get_entity_class($entitytype)) {
-            return $classname::get($this, $entityid);
-        }
-        return null;
+        $classname = $this->template. '_'. $entitytype;
+        return $classname::get($this, $entityid);
     }
 
     /**
@@ -386,7 +298,7 @@ class instantquiz_instantquiz {
                 $entities = array_intersect_key($entities, $entityids);
             }
             if (!empty($entities)) {
-                $formclass = $this->get_entity_edit_form_class($entity);
+                $formclass = $this->template. '_'. $entity. '_form';
                 $form = new $formclass(null, $entities);
                 if ($form->is_cancelled()) {
                     redirect($this->manage_link(array('cmd' => 'list', 'entity' => $entity)));
@@ -524,8 +436,7 @@ class instantquiz_instantquiz {
     public function view_page() {
         global $USER;
         $elements = array();
-        $context = $this->get_context();
-        $classname = $this->get_entity_class('attempt');
+        $classname = $this->template. '_attempt';
         if ($classname::can_start_attempt($this)) {
             $elements[] = new single_button($this->attempt_link(array('attemptid' => 'startnew')),
                     get_string('startattempt', 'mod_instantquiz'));
@@ -552,7 +463,7 @@ class instantquiz_instantquiz {
      */
     public function attempt_page() {
         global $USER;
-        $classname = $this->get_entity_class('attempt');
+        $classname = $this->template. '_attempt';
         $attemptid = required_param('attemptid', PARAM_ALPHANUM);
         $viewurl = new moodle_url('/mod/instantquiz/view.php', array('id' => $this->cm->id));
         if ((int)$attemptid) {
@@ -577,7 +488,7 @@ class instantquiz_instantquiz {
     public function results_page() {
         $attemptid = optional_param('attemptid', null, PARAM_RAW);
         $userid = optional_param('userid', null, PARAM_INT);
-        $classname = $this->get_entity_class('attempt');
+        $classname = $this->template. '_attempt';
         if ((int)$attemptid && ($attempt = $classname::get_user_attempt($this, $userid, $attemptid))) {
             if ($attempt->can_view_attempt()) {
                 return $attempt->review_attempt();

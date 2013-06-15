@@ -23,7 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->libdir. '/formslib.php');
 
 /**
  * Form for editing one feedback

@@ -26,6 +26,29 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
+ * Class autoloading
+ *
+ * @param string $classname
+ */
+function instantquiz_classloader($classname) {
+    global $CFG;
+    if ($classname === 'moodleform') {
+        require_once($CFG->libdir. '/formslib.php');
+    } else if (preg_match('/^instantquiz_(.+)$/', $classname, $matches)) {
+        require_once($CFG->dirroot.'/mod/instantquiz/classes/'. $matches[1]. '.php');
+    } else if (preg_match('/^instantquiztmpl_([^_]+)_(.*)$/', $classname, $matches)) {
+        $filename = $CFG->dirroot.'/mod/instantquiz/template/'. $matches[1]. '/classes/'. $matches[2]. '.php';
+        if (file_exists($filename)) {
+            require_once($filename);
+        } else {
+            class_alias('instantquiz_'. $matches[2], $classname);
+        }
+    }
+}
+
+spl_autoload_register('instantquiz_classloader');
+
+/**
  * Given either course module or instantquizid returns an instance of proper instantquiz object
  *
  * @param int|stdClass|cm_info $cm
@@ -33,7 +56,7 @@ defined('MOODLE_INTERNAL') || die();
  * @return instantquiz_instantquiz
  */
 function instantquiz_get_instantquiz($cm, $instantquizid = null) {
-    global $DB, $CFG;
+    global $DB;
     if (!$instantquizid) {
         // we need to get instantquiz id from course module
         if (!is_object($cm)) {
@@ -46,8 +69,7 @@ function instantquiz_get_instantquiz($cm, $instantquizid = null) {
         $cm = get_coursemodule_from_instance('instantquiz', $record->id, $record->course, false, MUST_EXIST);
     }
 
-    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
-    $classname = instantquiz_instantquiz::get_instantquiz_class($record->template);
+    $classname = $record->template. '_instantquiz';
     $instantquiz = new $classname($cm, $record);
     return $instantquiz;
 }
@@ -59,7 +81,7 @@ function instantquiz_get_instantquiz($cm, $instantquizid = null) {
  */
 function instantquiz_get_templates() {
     $subplugins = get_plugin_list('instantquiztmpl');
-    $rv = array('' => 'No template'); // TODO
+    $rv = array();
     foreach ($subplugins as $pluginname => $dir) {
         $fullname = 'instantquiztmpl_'. $pluginname;
         $rv[$fullname] = get_string('pluginname', $fullname);

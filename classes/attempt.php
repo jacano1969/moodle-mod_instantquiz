@@ -23,7 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot. '/mod/instantquiz/classes/entity.php');
 
 /**
  * Contains information and useful functions to deal with one instantquiz attempt
@@ -290,7 +289,7 @@ class instantquiz_attempt extends instantquiz_entity {
             }
         }
         if (empty($elements)) {
-            $classname = $this->instantquiz->get_entity_class('feedback');
+            $classname = $this->instantquiz->template. '_feedback';
             $elements[] = $classname::get_default_feedback($this->instantquiz);
         }
         $elements[] = new single_button(new moodle_url('/mod/instantquiz/view.php', array('id' => $this->instantquiz->get_cm()->id)),
@@ -306,7 +305,7 @@ class instantquiz_attempt extends instantquiz_entity {
         if (!$this->can_continue_attempt()) {
             return new instantquiz_collection(array());
         }
-        $formclassname = $this->instantquiz->get_entity_edit_form_class('attempt');
+        $formclassname = $this->instantquiz->template. '_attempt_form';
         $form = new $formclassname(null, $this);
         if ($form->is_cancelled()) {
             redirect(new moodle_url('/mod/instantquiz/view.php', array('id' => $this->instantquiz->get_cm()->id)));

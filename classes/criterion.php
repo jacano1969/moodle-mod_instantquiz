@@ -23,7 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot. '/mod/instantquiz/classes/entity.php');
 
 /**
  * Contains information and useful functions to deal with one instantquiz evaluation criterion

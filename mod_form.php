@@ -86,14 +86,11 @@ class mod_instantquiz_mod_form extends moodleform_mod {
      * Adds/modifies form elements after data was set
      */
     public function definition_after_data() {
-        global $CFG;
         parent::definition_after_data();
         $mform = $this->_form;
         $templatevalue = $mform->getElementValue('template');
-        if (is_array($templatevalue) && !empty($templatevalue)) {
-            require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
-            $classname = instantquiz_instantquiz::get_instantquiz_class($templatevalue[0]);
-
+        if (is_array($templatevalue) && !empty($templatevalue) && preg_match('/^instantquiztmpl_/', $templatevalue[0])) {
+            $classname = $templatevalue[0]. '_instantquiz';
             $elements = $classname::edit_form_elements($mform, $this->_cm);
             for ($i = 0; $i < count($elements); $i++) {
                 $mform->insertElementBefore($mform->removeElement($elements[$i]->getName(), false),

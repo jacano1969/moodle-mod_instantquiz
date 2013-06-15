@@ -66,8 +66,8 @@ function instantquiz_supports($feature) {
  */
 function instantquiz_add_instance(stdClass $data, mod_instantquiz_mod_form $mform = null) {
     global $CFG;
-    require_once($CFG->dirroot.'/mod/instantquiz/classes/instantquiz.php');
-    $classname = instantquiz_instantquiz::get_instantquiz_class($data->template);
+    require_once($CFG->dirroot.'/mod/instantquiz/locallib.php');
+    $classname = $data->template. '_instantquiz';
     return $classname::create($data, $mform);
 }
 
@@ -317,23 +317,5 @@ function instantquiz_extend_settings_navigation(settings_navigation $settingsnav
         $node = navigation_node::create(get_string('manage', 'mod_instantquiz'), $link,
                 navigation_node::TYPE_SETTING);
         $instantquiznode->add_node($node, $beforekey);
-    }
-}
-
-/**
- * Includes all instant quiz templates lib.php files
- *
- * @param string $classname if specified and class exists omits the next step (it's is already loaded)
- */
-function instantquiz_include_tmpl_lib($classname = null) {
-    global $CFG;
-    require_once($CFG->dirroot.'/mod/instantquiz/templatebase.php');
-    if (!empty($classname) && class_exists($classname)) {
-        // nothing to do, file already included
-        return;
-    }
-    $subplugins = get_plugin_list('instantquiztmpl');
-    foreach ($subplugins as $pluginname => $dir) {
-        require_once($dir.'/lib.php');
     }
 }
