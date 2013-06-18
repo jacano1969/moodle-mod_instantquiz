@@ -37,6 +37,22 @@ $string['subplugintype_instantquiztmpl'] = 'Template';
 $string['subplugintype_instantquiztmpl_plural'] = 'Templates';
 $string['manage'] = 'Edit instant quiz';
 
+$string['attemptslimit'] = 'Limit number of attempts';
+$string['attemptslimit_help'] = 'Maximum number of times the user is allowed to answer the questions';
+$string['attemptduration'] = 'Limit attempt time';
+$string['attemptduration_help'] = 'Maximum time allowed to answer the questions';
+$string['timeopen'] = 'Allow answers from';
+$string['timeopen_help'] = 'The earliest date when participant is allowed to answer the questions';
+$string['timeclose'] = 'Allow answers till';
+$string['timeclose_help'] = 'Answer will not be accepted if it is submitted after this date even if participant started answering before this deadline.';
+$string['displayresult'] = 'Display results';
+$string['resultafteranswer'] = 'After an answer';
+$string['resultafteranswer_help'] = 'User must submit an answer in order to view the results';
+$string['resultmindate'] = 'After date';
+$string['resultmindate_help'] = 'Results are only display after this date';
+$string['resultminanswers'] = 'Minimum answers';
+$string['resultminanswers_help'] = 'Display results only when at least this number of participants have answered';
+
 $string['defcriterionname'] = 'Criterion {$a}';
 $string['addcriterion'] = 'Add new evaluation criterion';
 $string['criterion_name'] = 'Criterion';

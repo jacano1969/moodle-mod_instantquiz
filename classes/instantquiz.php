@@ -36,6 +36,8 @@ class instantquiz_instantquiz {
     protected $record;
     /** @var stdClass|cm_info information about course module */
     protected $cm;
+    /** @var array|null */
+    protected $addinfo;
 
     /**
      * Constructor
@@ -53,19 +55,102 @@ class instantquiz_instantquiz {
     }
 
     /**
+     * Returns the instantquiz attribute (set when editing the module form)
+     *
+     * @param string $key
+     * @param mixed $defaultvalue
+     * @return mixed
+     */
+    public function get_attribute($key, $defaultvalue = null) {
+        if ($this->addinfo === null) {
+            $this->addinfo = array();
+            if (!empty($this->record->addinfo) && $addinfo = @json_decode($this->record->addinfo)) {
+                $this->addinfo = convert_to_array($addinfo);
+            }
+        }
+        if (array_key_exists($key, $this->addinfo)) {
+            return $this->addinfo[$key];
+        } else {
+            return $defaultvalue;
+        }
+    }
+
+    /**
      * Allows to add additional template settings to the module edit form
      *
      * Very important to return an array of added elements
      *
-     * @param mod_instantquiz_mod_form $mform
+     * @param MoodleQuickForm $mform
      * @patam stdClass|modinfo $cm course module being updated, null if it is being created
      * @return array array of elements that were added to the form
      */
-    public static function edit_form_elements($mform, $cm) {
+    public static function edit_form_elements(MoodleQuickForm $mform, $cm) {
         $elements = array();
         // Example:
-        // $elements[] = $mform->addElement('text', 'elementname', get_string('elementname', 'instantquiztmpl_xxx')),
+        // $elements[] = $mform->addElement('text', 'elementname', get_string('elementname', 'instantquiztmpl_xxx'));
+        $elements[] = $mform->addElement('select', 'addinfo_attemptslimit', get_string('attemptslimit', 'mod_instantquiz'),
+                array(0 => get_string('unlimited')) + array_combine(range(1, INSTANTQUIZ_MAX_ATTEMPT_OPTION), range(1, INSTANTQUIZ_MAX_ATTEMPT_OPTION)));
+        $mform->addHelpButton('addinfo_attemptslimit', 'attemptslimit', 'instantquiz');
+        $mform->setType('addinfo_attemptslimit', PARAM_INT);
+
+        $elements[] = $mform->addElement('duration', 'addinfo_attemptduration', get_string('attemptduration', 'mod_instantquiz'),
+                array('optional' => true));
+        $mform->addHelpButton('addinfo_attemptduration', 'attemptduration', 'instantquiz');
+        $mform->setType('addinfo_attemptduration', PARAM_INT);
+
+        //-------------------------------------------------------------------------------
+        $elements[] = $mform->addElement('header', 'timinghdr', get_string('timing', 'form'));
+
+        $elements[] = $mform->addElement('date_time_selector', 'addinfo_timeopen',
+                get_string('timeopen', 'instantquiz'),
+                array('optional' => true));
+        $mform->addHelpButton('addinfo_timeopen', 'timeopen', 'instantquiz');
+        $mform->setType('addinfo_timeopen', PARAM_INT);
+        $mform->setDefault('addinfo_timeopen', time());
+
+        $elements[] = $mform->addElement('date_time_selector', 'addinfo_timeclose',
+                get_string('timeclose', 'instantquiz'),
+                array('optional' => true));
+        $mform->addHelpButton('addinfo_timeclose', 'timeclose', 'instantquiz');
+        $mform->setType('addinfo_timeclose', PARAM_INT);
+        $mform->setDefault('addinfo_timeclose', time());
+
+        //-------------------------------------------------------------------------------
+        $elements[] = $mform->addElement('header', 'displayresulthdr', get_string('displayresult', 'instantquiz'));
+        $elements[] = $mform->addElement('advcheckbox', 'addinfo_resultafteranswer', get_string('resultafteranswer', 'mod_instantquiz'));
+        $mform->addHelpButton('addinfo_resultafteranswer', 'resultafteranswer', 'instantquiz');
+        $mform->setType('addinfo_resultafteranswer', PARAM_INT);
+        $mform->setDefault('addinfo_resultafteranswer', 1);
+
+        $elements[] = $mform->addElement('date_time_selector', 'addinfo_resultmindate', get_string('resultmindate', 'instantquiz'),
+                array('optional' => true));
+        $mform->addHelpButton('addinfo_resultmindate', 'resultmindate', 'instantquiz');
+        $mform->setType('addinfo_resultmindate', PARAM_INT);
+        $mform->setDefault('addinfo_resultmindate', time());
+
+        $elements[] = $mform->addElement('text', 'addinfo_resultminanswers', get_string('resultminanswers', 'instantquiz'));
+        $mform->addHelpButton('addinfo_resultminanswers', 'resultminanswers', 'instantquiz');
+        $mform->setType('addinfo_resultminanswers', PARAM_INT);
+        $mform->setDefault('addinfo_resultminanswers', 0);
+
         return $elements;
+    }
+
+    /**
+     * Pre-process data before setting to module edit form
+     *
+     * @param array $default_values passed by reference
+     */
+    public static function edit_form_data_preprocessing(&$default_values) {
+        if (!empty($default_values['addinfo'])) {
+            $addinfo = @json_decode($default_values['addinfo']);
+            if (!empty($addinfo)) {
+                $addinfo = convert_to_array($addinfo);
+                foreach ($addinfo as $key => $value) {
+                    $default_values['addinfo_'. $key] = $value;
+                }
+            }
+        }
     }
 
     /**
@@ -86,7 +171,13 @@ class instantquiz_instantquiz {
         $data->timecreated = time();
         $data->timemodified = time();
 
-        // TODO
+        $addinfo = array();
+        foreach ($data as $key => $value) {
+            if (preg_match('/^addinfo_(.+)$/', $key, $matches)) {
+                $addinfo[$matches[1]] = $value;
+            }
+        }
+        $data->addinfo = json_encode($addinfo);
 
         return $DB->insert_record('instantquiz', $data);
     }
@@ -110,7 +201,13 @@ class instantquiz_instantquiz {
 
         $data->timemodified = time();
 
-        // TODO
+        $addinfo = $this->addinfo;
+        foreach ($data as $key => $value) {
+            if (preg_match('/^addinfo_(.+)$/', $key, $matches)) {
+                $addinfo[$matches[1]] = $value;
+            }
+        }
+        $data->addinfo = json_encode($addinfo);
 
         return $DB->update_record('instantquiz', $data);
     }

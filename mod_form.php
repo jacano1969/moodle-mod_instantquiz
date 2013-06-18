@@ -83,6 +83,19 @@ class mod_instantquiz_mod_form extends moodleform_mod {
     }
 
     /**
+     * Pre-process data before setting to module edit form
+     *
+     * @param array $default_values passed by reference
+     */
+    public function data_preprocessing(&$default_values) {
+        parent::data_preprocessing($default_values);
+        if (!empty($this->current) && preg_match('/^instantquiztmpl_/', $this->current->template)) {
+            $classname = $this->current->template. '_instantquiz';
+            $classname::edit_form_data_preprocessing($default_values);
+        }
+    }
+
+    /**
      * Adds/modifies form elements after data was set
      */
     public function definition_after_data() {
@@ -91,10 +104,15 @@ class mod_instantquiz_mod_form extends moodleform_mod {
         $templatevalue = $mform->getElementValue('template');
         if (is_array($templatevalue) && !empty($templatevalue) && preg_match('/^instantquiztmpl_/', $templatevalue[0])) {
             $classname = $templatevalue[0]. '_instantquiz';
+            $currentdefaults = $mform->_defaultValues;
             $elements = $classname::edit_form_elements($mform, $this->_cm);
-            for ($i = 0; $i < count($elements); $i++) {
+            foreach (array_keys($elements) as $i) {
                 $mform->insertElementBefore($mform->removeElement($elements[$i]->getName(), false),
                         'addtemplateoptionshere');
+            }
+            if (!empty($currentdefaults)) {
+                // overwrite the defalt values that were set in edit_form_elements() with data set in set_data()
+                $mform->setDefaults($currentdefaults);
             }
         }
     }

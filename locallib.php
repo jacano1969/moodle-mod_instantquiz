@@ -25,6 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+define('INSTANTQUIZ_MAX_ATTEMPT_OPTION', 10);
+
 /**
  * Class autoloading
  *
