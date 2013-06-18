@@ -54,13 +54,113 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders the instantquiz feedback to show to the user
+     * Wraps content in div with CSS classes for each entity class/parent name and displaymode
+     * Also adds edit/delete controls in DISPLAYMODE_EDIT
      *
-     * @param instantquiz_feedback $feedback
+     * @param instantquiz_entity $entity
+     * @param string $content
      * @return string
      */
-    protected function render_instantquiz_feedback($feedback) {
-        return $feedback->get_formatted_feedback();
+    public function render_instantquiz_entity(instantquiz_entity $entity, $content) {
+        $cssclasses = array_values(class_parents($entity));
+        array_unshift($cssclasses, get_class($entity));
+        if (preg_match('/^instantquiz_(.*)$/', get_class($entity), $matches)) {
+            // if class was not overridden in the template, still add class name as it would be called in the template.
+            array_unshift($cssclasses, $entity->instantquiz->template. '_'. $matches[1]);
+        }
+        $cssclasses[] = $entity->displaymode;
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_EDIT) {
+            $controls = '';
+            if (preg_match('/^.*_(.*?)$/', get_class($entity), $matches)) {
+                $entityname = $matches[1];
+                $controls .= html_writer::link($entity->instantquiz->manage_link(array('cmd' => 'edit',
+                    'entity' => $entityname, 'entityid['.$entity->id.']' => 1)), get_string('edit'));
+                $controls .= html_writer::link($entity->instantquiz->manage_link(array('cmd' => 'delete',
+                    'entity' => $entityname, 'entityid['.$entity->id.']' => 1)), get_string('delete'));
+            }
+            $content = html_writer::tag('div', $controls, array('class' => 'controls')).
+                    html_writer::tag('div', $content, array('class' => 'content'));
+        }
+        return html_writer::tag('div', $content,
+                array('class' => join(' ', $cssclasses)));
+    }
+
+    /**
+     * Renders the instantquiz feedback to show to the user
+     *
+     * This function initially is 'public' so it can be called from template renderers
+     *
+     * @param instantquiz_feedback $entity
+     * @return string
+     */
+    public function render_instantquiz_feedback(instantquiz_feedback $entity) {
+        $rv = '';
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_NORMAL ||
+                $entity->displaymode === instantquiz_entity::DISPLAYMODE_REVIEW) {
+            $rv = $entity->get_formatted_feedback();
+        } else if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_EDIT ||
+                $entity->displaymode === instantquiz_entity::DISPLAYMODE_PREVIEW) {
+            $rv = $entity->get_formatted_feedback(); // TODO truncate
+            if (!empty($entity->addinfo['formula'])) {
+                $rv .= '<div><b>'. $entity->addinfo['formula']. '</b></div>';
+            }
+            $rv .= html_writer::end_tag('div');
+        }
+        return $this->render_instantquiz_entity($entity, $rv);
+    }
+
+    /**
+     * Renders the instantquiz criterion to show to the user
+     *
+     * This function initially is 'public' so it can be called from template renderers
+     *
+     * @param instantquiz_criterion $entity
+     * @return string
+     */
+    public function render_instantquiz_criterion(instantquiz_criterion $entity) {
+        $rv = '';
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_PREVIEW ||
+                $entity->displaymode === instantquiz_entity::DISPLAYMODE_EDIT) {
+            $rv = $entity->criterion;
+        }
+        return $this->render_instantquiz_entity($entity, $rv);
+    }
+
+    /**
+     * Renders the instantquiz question to show to the user
+     *
+     * This function initially is 'public' so it can be called from template renderers
+     *
+     * @param instantquiz_question $entity
+     * @return string
+     */
+    public function render_instantquiz_question(instantquiz_question $entity) {
+        $rv = '';
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_PREVIEW ||
+                $entity->displaymode === instantquiz_entity::DISPLAYMODE_EDIT) {
+            return $this->render_instantquiz_question_preview($entity);
+        }
+
+        return $this->render_instantquiz_entity($entity, $rv);
+    }
+
+    /**
+     * Renders the instantquiz question to show to the user (preview mode)
+     *
+     * @param instantquiz_question $entity
+     * @return string
+     */
+    public function render_instantquiz_question_preview(instantquiz_question $entity) {
+        $rv = format_text($entity->question, $entity->questionformat,
+            array('context' => $entity->instantquiz->get_context()));
+        if (!empty($entity->options)) {
+            $lines = array();
+            foreach ($entity->options as $option) {
+                $lines[] = html_writer::tag('li', $option['value']);
+            }
+            $rv .= html_writer::tag('ul', join('', $lines));
+        }
+        return $this->render_instantquiz_entity($entity, $rv);
     }
 
     /**

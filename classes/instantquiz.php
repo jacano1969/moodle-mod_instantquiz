@@ -441,22 +441,9 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     protected function list_criterions() {
-        $all = $this->get_entities('criterion');
-        $objects = array();
-        $cnt = 0;
-        if (count($all)) {
-            $table = new instantquiz_table();
-            $table->head = array('#',
-                get_string('criterion_name', 'mod_instantquiz'),
-                get_string('edit'),
-                get_string('delete'));
-            $table->data = array();
-            foreach ($all as $e) {
-                $table->data[] = array(++$cnt, $e->get_preview(),
-                    html_writer::link($this->manage_link(array('cmd' => 'edit', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('edit')),
-                    html_writer::link($this->manage_link(array('cmd' => 'delete', 'entity' => 'criterion', 'entityid['.$e->id.']' => 1)), get_string('delete')));
-            }
-            $objects[] = $table;
+        $classname = $this->template. '_criterion';
+        $objects = $classname::get_all($this, instantquiz_entity::DISPLAYMODE_EDIT);
+        if (!empty($objects)) {
             $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'criterion')),
                     get_string('edit'));
         }
@@ -471,22 +458,9 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     protected function list_feedbacks() {
-        $all = $this->get_entities('feedback');
-        $objects = array();
-        $cnt = 0;
-        if (count($all)) {
-            $table = new instantquiz_table();
-            $table->head = array('#',
-                get_string('feedback_preview', 'mod_instantquiz'),
-                get_string('edit'),
-                get_string('delete'));
-            $table->data = array();
-            foreach ($all as $f) {
-                $table->data[] = array(++$cnt, $f->get_preview(),
-                    html_writer::link($this->manage_link(array('cmd' => 'edit', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('edit')),
-                    html_writer::link($this->manage_link(array('cmd' => 'delete', 'entity' => 'feedback', 'entityid['.$f->id.']' => 1)), get_string('delete')));
-            }
-            $objects[] = $table;
+        $classname = $this->template. '_feedback';
+        $objects = $classname::get_all($this, instantquiz_entity::DISPLAYMODE_EDIT);
+        if (!empty($objects)) {
             $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'feedback')),
                     get_string('edit'));
         }
@@ -501,22 +475,9 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     protected function list_questions() {
-        $all = $this->get_entities('question');
-        $objects = array();
-        $cnt = 0;
-        if (count($all)) {
-            $table = new instantquiz_table();
-            $table->head = array('#',
-                get_string('question_preview', 'mod_instantquiz'),
-                get_string('edit'),
-                get_string('delete'));
-            $table->data = array();
-            foreach ($all as $q) {
-                $table->data[] = array(++$cnt, $q->get_preview(),
-                    html_writer::link($this->manage_link(array('cmd' => 'edit', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('edit')),
-                    html_writer::link($this->manage_link(array('cmd' => 'delete', 'entity' => 'question', 'entityid['.$q->id.']' => 1)), get_string('delete')));
-            }
-            $objects[] = $table;
+        $classname = $this->template. '_question';
+        $objects = $classname::get_all($this, instantquiz_entity::DISPLAYMODE_EDIT);
+        if (!empty($objects)) {
             $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'question')),
                     get_string('edit'));
         }

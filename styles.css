@@ -1,0 +1,4 @@
+.instantquiz_entity.managemode {overflow: hidden;border-bottom: 1px solid #E0E0E0;margin:5px;padding-bottom: 5px;}
+.instantquiz_entity.managemode > .controls {vertical-align: top;display: inline-block; padding-right: 10px;}
+.instantquiz_entity.managemode > .controls > a {display: block;}
+.instantquiz_entity.managemode > .content {vertical-align: top;display: inline-block}

@@ -31,13 +31,20 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2013 Marina Glancy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class instantquiz_entity {
+abstract class instantquiz_entity implements renderable {
     /** @var entityid */
     var $id;
     /** @var entity sort order */
     var $sortorder;
     /** @var instantquiz reference to the instantquiz containing this entity */
     var $instantquiz;
+    /** @var */
+    var $displaymode = 'attemptmode';
+
+    const DISPLAYMODE_NORMAL  = 'attemptmode'; // During attempt
+    const DISPLAYMODE_REVIEW  = 'reviewmode'; // When reviewing the attempt
+    const DISPLAYMODE_PREVIEW = 'previewmode'; // Preview
+    const DISPLAYMODE_EDIT    = 'managemode'; // Editng mode, on manage page
 
     /**
      * Constructor from DB record
@@ -92,14 +99,17 @@ abstract class instantquiz_entity {
      * Retrieves all entities from database
      *
      * @param instantquiz_instantquiz $instantquiz
+     * @param $displaymode
      * @return array of instantquiz_entity
      */
-    public static final function get_all($instantquiz) {
+    public static final function get_all($instantquiz, $displaymode = self::DISPLAYMODE_NORMAL) {
         global $DB;
         $questions = array();
         if ($records = $DB->get_records(static::get_table_name(), array('instantquizid' => $instantquiz->id))) {
             foreach ($records as $record) {
-                $questions[$record->id] = new static($instantquiz, $record);
+                $el = new static($instantquiz, $record);
+                $el->displaymode = $displaymode;
+                $questions[$record->id] = $el;
             }
         }
         return $questions;
