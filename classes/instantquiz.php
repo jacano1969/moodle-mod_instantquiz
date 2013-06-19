@@ -319,9 +319,9 @@ class instantquiz_instantquiz {
      *
      * @return array of instantquiz_criterion
      */
-    public function get_entities($entitytype) {
+    public function get_entities($entitytype, $displaymode = instantquiz_entity::DISPLAYMODE_NORMAL) {
         $classname = $this->template. '_'. $entitytype;
-        return $classname::get_all($this);
+        return $classname::get_all($this, $displaymode);
     }
 
     /**
@@ -549,7 +549,11 @@ class instantquiz_instantquiz {
         $classname = $this->template. '_attempt';
         if ((int)$attemptid && ($attempt = $classname::get_user_attempt($this, $userid, $attemptid))) {
             if ($attempt->can_view_attempt()) {
-                return $attempt->review_attempt();
+                $attempt->displaymode = instantquiz_entity::DISPLAYMODE_REVIEW;
+                return new instantquiz_collection(array($attempt,
+                    new single_button(new moodle_url('/mod/instantquiz/view.php',
+                            array('id' => $this->get_cm()->id)),
+                            get_string('back'))));
             } else {
                 print_error('Not allowd'); // TODO
             }

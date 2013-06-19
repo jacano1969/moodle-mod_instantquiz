@@ -55,8 +55,9 @@ class instantquiz_attempt_form extends moodleform implements renderable {
         //$this->editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'maxbytes' => $CFG->maxbytes,
         //    'trusttext' => false, 'noclean' => true, 'context' => $context);
 
+        $renderer = $this->instantquiz->get_renderer();
         foreach ($this->instantquiz->get_entities('question') as $question) {
-            $mform->addElement('static', '', '', $question->question); // TODO format
+            $mform->addElement('static', '', '', $renderer->render($question)); // TODO format
 
             /* Option 1: Display as radio elements */
             $elementobjs = array();

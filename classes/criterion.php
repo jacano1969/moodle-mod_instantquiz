@@ -97,13 +97,4 @@ class instantquiz_criterion extends instantquiz_entity {
             $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
     }
-
-    /**
-     * Returns truncated and simply formatted criterion name to display on the manage page
-     *
-     * @return string
-     */
-    public function get_preview() {
-        return $this->criterion;
-    }
 }

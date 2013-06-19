@@ -141,17 +141,4 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
         return format_text($this->feedback, $this->feedbackformat,
             array('context' => $this->instantquiz->get_context()) + $params);
     }
-
-    /**
-     * Returns truncated and simply formatted feedback text to display on the manage page
-     *
-     * @return string
-     */
-    public function get_preview() {
-        $preview = $this->get_formatted_feedback();
-        if (!empty($this->addinfo['formula'])) {
-            $preview .= '<div><b>'. $this->addinfo['formula']. '</b></div>';
-        }
-        return $preview;
-    }
 }

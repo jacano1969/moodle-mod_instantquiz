@@ -34,6 +34,25 @@ defined('MOODLE_INTERNAL') || die();
 class mod_instantquiz_renderer extends plugin_renderer_base {
 
     /**
+     * Renders the provided widget and returns the HTML to display it.
+     *
+     * @param renderable $widget
+     * @return string
+     */
+    public function render(renderable $widget) {
+        try {
+            return parent::render($widget);
+        } catch (coding_exception $e) {
+            foreach (class_parents($widget) as $parentclass) {
+                if (method_exists($this, 'render_'. $parentclass)) {
+                    return $this->{'render_'. $parentclass}($widget);
+                }
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * Renderer for instantquiz_collection
      *
      * @param instantquiz_collection $collection
@@ -104,7 +123,6 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             if (!empty($entity->addinfo['formula'])) {
                 $rv .= '<div><b>'. $entity->addinfo['formula']. '</b></div>';
             }
-            $rv .= html_writer::end_tag('div');
         }
         return $this->render_instantquiz_entity($entity, $rv);
     }
@@ -136,6 +154,17 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      */
     public function render_instantquiz_question(instantquiz_question $entity) {
         $rv = '';
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_REVIEW) {
+            $answer = $entity->currentanswer;
+            $preview = format_text($entity->question, $entity->questionformat,
+                array('context' => $entity->instantquiz->get_context())).
+                    print_r($answer,true);
+            return $preview;
+        }
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_NORMAL) {
+            return format_text($entity->question, $entity->questionformat,
+                array('context' => $entity->instantquiz->get_context()));
+        }
         if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_PREVIEW ||
                 $entity->displaymode === instantquiz_entity::DISPLAYMODE_EDIT) {
             return $this->render_instantquiz_question_preview($entity);
@@ -160,6 +189,34 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             }
             $rv .= html_writer::tag('ul', join('', $lines));
         }
+        return $this->render_instantquiz_entity($entity, $rv);
+    }
+
+    /**
+     * Renders the instantquiz attempt to show to the user
+     *
+     * This function initially is 'public' so it can be called from template renderers
+     *
+     * @param attempt
+     * @return string
+     */
+    public function render_instantquiz_attempt(instantquiz_attempt $entity) {
+        $rv = '';
+        if ($entity->displaymode === instantquiz_entity::DISPLAYMODE_REVIEW) {
+            foreach ($entity->instantquiz->get_entities('question', $entity->displaymode) as $question) {
+                $question->currentanswer = $entity->get_answer($question->id);
+                $rv .= $this->render($question);
+            }
+            foreach ($entity->get_feedbacks() as $feedback) {
+                $rv .= $this->render($feedback);
+            }
+        }
+        else if ($entity->displaymode === instantquiz_attempt::DISPLAYMODE_NORMAL) {
+            foreach ($entity->get_feedbacks() as $feedback) {
+                $rv .= $this->render($feedback);
+            }
+        }
+
         return $this->render_instantquiz_entity($entity, $rv);
     }
 

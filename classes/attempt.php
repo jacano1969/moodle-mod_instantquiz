@@ -131,16 +131,6 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
-     * Returns truncated and simply formatted name to display on the manage page
-     *
-     * @return string
-     */
-    public function get_preview() {
-        // not applicable for attempts
-        return null;
-    }
-
-    /**
      *
      * @param instantquiz_instantquiz $instantquiz
      * @param int $userid
@@ -261,40 +251,26 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
-     * @return renderable
-     */
-    public function review_attempt() {
-        $rv = array();
-        if ($this->can_view_attempt()) {
-            foreach ($this->instantquiz->get_entities('question') as $question) {
-                $rv[] = $question->review($this);
-            }
-            $rv[] = $this->show_feedback();
-        }
-        return new instantquiz_collection($rv);
-    }
-
-    /**
+     * Returns all feedbacks
      *
-     * @return renderable
+     * @return array array of instantquiz_feedback objects
      */
-    public function show_feedback() {
-        $elements = array();
+    public function get_feedbacks() {
+        $feedbacks = array();
+        $classname = $this->instantquiz->template. '_feedback';
         if (!empty($this->feedbacks)) {
-            $feedbacks = $this->instantquiz->get_entities('feedback');
             foreach ($this->feedbacks as $feedbackid) {
-                if (isset($feedbacks[$feedbackid])) {
-                    $elements[] = $feedbacks[$feedbackid];
+                if ($f = $classname::get($this->instantquiz, $feedbackid, $this->displaymode)) {
+                    $feedbacks[] = $f;
                 }
             }
         }
-        if (empty($elements)) {
-            $classname = $this->instantquiz->template. '_feedback';
-            $elements[] = $classname::get_default_feedback($this->instantquiz);
+        if (empty($feedbacks)) {
+            $f = $classname::get_default_feedback($this->instantquiz);
+            $f->displaymode = $this->displaymode;
+            $feedbacks[] = $f;
         }
-        $elements[] = new single_button(new moodle_url('/mod/instantquiz/view.php', array('id' => $this->instantquiz->get_cm()->id)),
-                get_string('back'));
-        return new instantquiz_collection($elements);
+        return $feedbacks;
     }
 
     /**
@@ -319,10 +295,11 @@ class instantquiz_attempt extends instantquiz_entity {
             $this->evaluate();
             if ($this->timefinished) {
                 // YAY! User finished the attempt, show feedback
-                return $this->show_feedback();
+                $this->displaymode = instantquiz_attempt::DISPLAYMODE_NORMAL;
+                return $this;
             }
         }
-        return new instantquiz_collection($form);
+        return $form;
     }
 
     /**

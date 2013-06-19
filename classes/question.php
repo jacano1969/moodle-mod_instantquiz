@@ -37,6 +37,7 @@ class instantquiz_question extends instantquiz_entity {
     public $options;
     public $addinfo;
     protected $lastmaxoptionidx;
+    public $currentanswer;
 
     /**
      * Returns the name of DB table (used in functions get_all() and update() )
@@ -163,37 +164,5 @@ class instantquiz_question extends instantquiz_entity {
             }
         }
         return $maxidx;
-    }
-
-    /**
-     * Returns truncated and simply formatted question text to display on the manage page
-     *
-     * @return string
-     */
-    public function get_preview() {
-        $preview = format_text($this->question, $this->questionformat,
-            array('context' => $this->instantquiz->get_context()));
-        if (!empty($this->options)) {
-            $lines = array();
-            foreach ($this->options as $option) {
-                $lines[] = html_writer::tag('li', $option['value']);
-            }
-            $preview .= html_writer::tag('ul', join('', $lines));
-        }
-        return $preview;
-    }
-
-    /**
-     * @param instantquiz_attempt $attempt
-     * @return renderable
-     */
-    public function review($attempt) {
-        $answer = $attempt->get_answer($this->id);
-        $preview = format_text($this->question, $this->questionformat,
-            array('context' => $this->instantquiz->get_context())).
-                print_r($answer,true);
-        $table = new instantquiz_table();
-        $table->data = array(new html_table_row(array(new html_table_cell($preview))));
-        return $table;
     }
 }

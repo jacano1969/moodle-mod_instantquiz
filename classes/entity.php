@@ -89,13 +89,6 @@ abstract class instantquiz_entity implements renderable {
     }
 
     /**
-     * Returns truncated and simply formatted entity text to display on the manage page
-     *
-     * @return string
-     */
-    abstract public function get_preview();
-
-    /**
      * Retrieves all entities from database
      *
      * @param instantquiz_instantquiz $instantquiz
@@ -122,8 +115,8 @@ abstract class instantquiz_entity implements renderable {
      * @param int $id
      * @return instantquiz_entity
      */
-    public static final function get($instantquiz, $id) {
-        $all = static::get_all($instantquiz);
+    public static final function get($instantquiz, $id, $displaymode = self::DISPLAYMODE_NORMAL) {
+        $all = static::get_all($instantquiz, $displaymode);
         if (isset($all[$id])) {
             return $all[$id];
         }
