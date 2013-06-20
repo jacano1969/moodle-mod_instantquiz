@@ -260,15 +260,13 @@ class instantquiz_attempt extends instantquiz_entity {
         $classname = $this->instantquiz->template. '_feedback';
         if (!empty($this->feedbacks)) {
             foreach ($this->feedbacks as $feedbackid) {
-                if ($f = $classname::get($this->instantquiz, $feedbackid, $this->displaymode)) {
+                if ($f = $classname::get($this->instantquiz, $feedbackid)) {
                     $feedbacks[] = $f;
                 }
             }
         }
         if (empty($feedbacks)) {
-            $f = $classname::get_default_feedback($this->instantquiz);
-            $f->displaymode = $this->displaymode;
-            $feedbacks[] = $f;
+            $feedbacks[] = $classname::get_default_feedback($this->instantquiz);
         }
         return $feedbacks;
     }
@@ -295,7 +293,7 @@ class instantquiz_attempt extends instantquiz_entity {
             $this->evaluate();
             if ($this->timefinished) {
                 // YAY! User finished the attempt, show feedback
-                $this->displaymode = instantquiz_attempt::DISPLAYMODE_NORMAL;
+                $this->instantquiz->displaymode = instantquiz_instantquiz::DISPLAYMODE_NORMAL;
                 return $this;
             }
         }

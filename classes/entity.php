@@ -38,13 +38,6 @@ abstract class instantquiz_entity implements renderable {
     var $sortorder;
     /** @var instantquiz reference to the instantquiz containing this entity */
     var $instantquiz;
-    /** @var */
-    var $displaymode = 'attemptmode';
-
-    const DISPLAYMODE_NORMAL  = 'attemptmode'; // During attempt
-    const DISPLAYMODE_REVIEW  = 'reviewmode'; // When reviewing the attempt
-    const DISPLAYMODE_PREVIEW = 'previewmode'; // Preview
-    const DISPLAYMODE_EDIT    = 'managemode'; // Editng mode, on manage page
 
     /**
      * Constructor from DB record
@@ -92,17 +85,14 @@ abstract class instantquiz_entity implements renderable {
      * Retrieves all entities from database
      *
      * @param instantquiz_instantquiz $instantquiz
-     * @param $displaymode
      * @return array of instantquiz_entity
      */
-    public static final function get_all($instantquiz, $displaymode = self::DISPLAYMODE_NORMAL) {
+    public static final function get_all($instantquiz) {
         global $DB;
         $questions = array();
         if ($records = $DB->get_records(static::get_table_name(), array('instantquizid' => $instantquiz->id))) {
             foreach ($records as $record) {
-                $el = new static($instantquiz, $record);
-                $el->displaymode = $displaymode;
-                $questions[$record->id] = $el;
+                $questions[$record->id] = new static($instantquiz, $record);
             }
         }
         return $questions;
@@ -115,8 +105,8 @@ abstract class instantquiz_entity implements renderable {
      * @param int $id
      * @return instantquiz_entity
      */
-    public static final function get($instantquiz, $id, $displaymode = self::DISPLAYMODE_NORMAL) {
-        $all = static::get_all($instantquiz, $displaymode);
+    public static final function get($instantquiz, $id) {
+        $all = static::get_all($instantquiz);
         if (isset($all[$id])) {
             return $all[$id];
         }

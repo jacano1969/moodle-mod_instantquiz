@@ -38,6 +38,13 @@ class instantquiz_instantquiz {
     protected $cm;
     /** @var array|null */
     protected $addinfo;
+    /** @var */
+    var $displaymode = 'attemptmode';
+
+    const DISPLAYMODE_NORMAL  = 'attemptmode'; // During attempt
+    const DISPLAYMODE_REVIEW  = 'reviewmode'; // When reviewing the attempt
+    const DISPLAYMODE_PREVIEW = 'previewmode'; // Preview
+    const DISPLAYMODE_EDIT    = 'managemode'; // Editng mode, on manage page
 
     /**
      * Constructor
@@ -319,9 +326,9 @@ class instantquiz_instantquiz {
      *
      * @return array of instantquiz_criterion
      */
-    public function get_entities($entitytype, $displaymode = instantquiz_entity::DISPLAYMODE_NORMAL) {
+    public function get_entities($entitytype) {
         $classname = $this->template. '_'. $entitytype;
-        return $classname::get_all($this, $displaymode);
+        return $classname::get_all($this);
     }
 
     /**
@@ -419,6 +426,7 @@ class instantquiz_instantquiz {
 
         // Print lists of object (if applicable)
         if ($cmd === 'list') {
+            $this->displaymode = self::DISPLAYMODE_EDIT;
             if ($entity === 'question') {
                 $objects[] = $this->list_questions();
             } else if ($entity === 'criterion') {
@@ -441,8 +449,7 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     protected function list_criterions() {
-        $classname = $this->template. '_criterion';
-        $objects = $classname::get_all($this, instantquiz_entity::DISPLAYMODE_EDIT);
+        $objects = $this->get_entities('criterion');
         if (!empty($objects)) {
             $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'criterion')),
                     get_string('edit'));
@@ -458,8 +465,7 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     protected function list_feedbacks() {
-        $classname = $this->template. '_feedback';
-        $objects = $classname::get_all($this, instantquiz_entity::DISPLAYMODE_EDIT);
+        $objects = $this->get_entities('feedback');
         if (!empty($objects)) {
             $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'feedback')),
                     get_string('edit'));
@@ -475,8 +481,7 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     protected function list_questions() {
-        $classname = $this->template. '_question';
-        $objects = $classname::get_all($this, instantquiz_entity::DISPLAYMODE_EDIT);
+        $objects = $this->get_entities('question');
         if (!empty($objects)) {
             $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'question')),
                     get_string('edit'));
@@ -549,7 +554,7 @@ class instantquiz_instantquiz {
         $classname = $this->template. '_attempt';
         if ((int)$attemptid && ($attempt = $classname::get_user_attempt($this, $userid, $attemptid))) {
             if ($attempt->can_view_attempt()) {
-                $attempt->displaymode = instantquiz_entity::DISPLAYMODE_REVIEW;
+                $this->displaymode = self::DISPLAYMODE_REVIEW;
                 return new instantquiz_collection(array($attempt,
                     new single_button(new moodle_url('/mod/instantquiz/view.php',
                             array('id' => $this->get_cm()->id)),
@@ -565,6 +570,7 @@ class instantquiz_instantquiz {
         $data = array();
         foreach ($attempts as $attempt) {
             if ($attempt->can_view_attempt()) {
+                $this->displaymode = self::DISPLAYMODE_PREVIEW; // TODO ???
                 $data[] = new html_table_row(array(
                     html_writer::link($this->results_link(array('attemptid' => $attempt->id)), 'USER '.$attempt->userid.' at '.
                             userdate($attempt->timefinished))
