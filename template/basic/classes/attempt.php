@@ -36,23 +36,61 @@ class instantquiztmpl_basic_attempt extends instantquiz_attempt {
     /**
      * Checks if user can continue current attempt
      *
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
      * @return bool
      */
-    public function can_continue_attempt() {
+    public function can_continue_attempt($returnonly = true) {
         $context = $this->instantquiz->get_context();
-        return parent::can_continue_attempt() && has_capability('instantquiztmpl/basic:attempt', $context);
+        if (!parent::can_continue_attempt($returnonly)) {
+            return false;
+        }
+        if ($returnonly) {
+            return has_capability('instantquiztmpl/basic:attempt', $context);
+        } else {
+            require_capability('instantquiztmpl/basic:attempt', $context);
+        }
     }
 
-    public function can_view_attempt() {
+    /**
+     *
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
+     * @return bool
+     */
+    public function can_view_attempt($returnonly = true) {
         global $USER;
+        if (!parent::can_view_attempt($returnonly)) {
+            return false;
+        }
         $context = $this->instantquiz->get_context();
-        return ($USER->id == $this->userid && has_capability('instantquiztmpl/basic:viewownattempt', $context))
-                || has_capability('instantquiztmpl/basic:viewanyattempt', $context);
+        if (($USER->id == $this->userid && !$this->overriden && has_capability('instantquiztmpl/basic:viewownattempt', $context))
+                    || has_capability('instantquiztmpl/basic:viewanyattempt', $context)) {
+            return true;
+        }
+        if ($returnonly) {
+            return false;
+        } else if ($USER->id == $this->userid && !$this->overriden) {
+            throw new required_capability_exception($context, 'instantquiztmpl/basic:viewownattempt');
+        } else {
+            throw new required_capability_exception($context, 'instantquiztmpl/basic:viewanyattempt');
+        }
     }
 
-    public static function can_start_attempt($instantquiz) {
+    /**
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
+     * @return bool
+     */
+    public static function can_start_attempt(instantquiz_instantquiz $instantquiz, $returnonly = true) {
+        if (!parent::can_start_attempt($instantquiz, $returnonly)) {
+            return false;
+        }
         $context = $instantquiz->get_context();
-        return has_capability('instantquiztmpl/basic:attempt', $context);
+        if ($returnonly) {
+            return has_capability('instantquiztmpl/basic:attempt', $context);
+        } else {
+            require_capability('instantquiztmpl/basic:attempt', $context);
+        }
     }
 
     /**

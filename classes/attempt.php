@@ -32,17 +32,18 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class instantquiz_attempt extends instantquiz_entity {
-    //var $criterion;
-    //var $addinfo;
     var $userid;
     var $timestarted;
     var $timefinished;
-    var $attemptnumber;
+    var $attemptnumber; // TODO deprecate
+    /** @var int 0 or 1, default 0: says that there is another attempt that was completed after this one was completed (or after this one was started if it has not been completed yet) */
     var $overriden;
     var $answers;
     var $points;
     var $feedbacks;
     var $addinfo;
+
+    protected static $alluserattempts = array();
 
     /**
      * Returns the name of DB table (used in functions get_all() and update() )
@@ -60,22 +61,11 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return instantquiz_attempt
      */
     public static function create($instantquiz) {
-        if (!self::can_start_attempt($instantquiz)) {
-            return null;
-        }
-        global $USER, $DB;
-        $maxattempt = $DB->get_field_sql("SELECT max(attemptnumber)
-            FROM {instantquiz_attempt}
-            WHERE instantquizid = ?
-            AND userid = ?", array($instantquiz->id, $USER->id));
-        if ($maxattempt) {
-            $DB->execute("UPDATE {instantquiz_attempt} SET overriden = ?
-                WHERE instantquizid = ?
-            AND userid = ?", array(1, $instantquiz->id, $USER->id));
-        }
+        static::can_start_attempt($instantquiz);
+        global $USER;
         $defaultvalues = new stdClass();
         $defaultvalues->userid = $USER->id;
-        $defaultvalues->attemptnumber = ((int)$maxattempt) + 1;
+        $defaultvalues->attemptnumber = 0; // TODO deprecate this
         $defaultvalues->timestarted = time();
         $defaultvalues->overriden = 0;
         $entity = new static($instantquiz, $defaultvalues);
@@ -113,7 +103,7 @@ class instantquiz_attempt extends instantquiz_entity {
         $record = array(
             'timestarted' => $this->timestarted,
             'timefinished' => $this->timefinished,
-            'attemptnumber' => $this->attemptnumber,
+            'attemptnumber' => $this->attemptnumber, // TODO deprecate this
             'overriden' => $this->overriden,
             'answers' => json_encode($this->answers),
             'points' => json_encode($this->points),
@@ -134,25 +124,25 @@ class instantquiz_attempt extends instantquiz_entity {
      *
      * @param instantquiz_instantquiz $instantquiz
      * @param int $userid
-     * @param int $attemptid
+     * @param int $attemptid if 0 will return last finished user attempt
      * @return instantquiz_attempt
      */
     public static function get_user_attempt($instantquiz, $userid, $attemptid = 0) {
         global $DB;
+        $params = array('instantquizid' => $instantquiz->id);
         if ($attemptid) {
-            if ($userid) {
-                $record = $DB->get_record('instantquiz_attempt',
-                        array('userid' => $userid, 'id' => $attemptid, 'instantquizid' => $instantquiz->id));
-            } else {
-                $record = $DB->get_record('instantquiz_attempt',
-                        array('id' => $attemptid, 'instantquizid' => $instantquiz->id));
-            }
-        } else {
-            if ($records = $DB->get_records('instantquiz_attempt',
-                    array('userid' => $userid, 'instantquizid' => $instantquiz->id),
-                    'attemptnumber desc', '*', 0, 1)) {
-                $record = reset($records);
-            }
+            $params['id'] = $attemptid;
+        }
+        if ($userid) {
+            $params['userid'] = $userid;
+        }
+        if ($attemptid) {
+            $record = $DB->get_record(static::get_table_name(), $params);
+        } else if ($userid) {
+            $record = $DB->get_record_sql('SELECT * FROM {'.static::get_table_name().'}
+                WHERE userid = :userid
+                AND instantquizid = :instantquizid AND timefinished IS NOT NULL AND overridden = 0',
+                $params);
         }
         if (!empty($record)) {
             return new static($instantquiz, $record);
@@ -167,32 +157,134 @@ class instantquiz_attempt extends instantquiz_entity {
      */
     public static function get_all_user_attempts($instantquiz, $userid) {
         global $DB;
-        $rv = array();
-        if ($records = $DB->get_records('instantquiz_attempt',
-                array('userid' => $userid, 'instantquizid' => $instantquiz->id), 'attemptnumber desc')) {
-            foreach ($records as $record) {
-                $rv[] = new static($instantquiz, $record);
+        if (!isset(self::$alluserattempts[$userid])) {
+            self::$alluserattempts[$userid] = array();
+            if ($records = $DB->get_records('instantquiz_attempt',
+                    array('userid' => $userid, 'instantquizid' => $instantquiz->id), 'overriden, timestarted desc')) {
+                foreach ($records as $record) {
+                    self::$alluserattempts[$userid][$record->id] = new static($instantquiz, $record);
+                }
             }
         }
-        return $rv;
+        return self::$alluserattempts[$userid];
     }
 
     /**
      * Checks if user can continue current attempt (i.e. attempt is not finished and not expired)
      *
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
      * @return bool
      */
-    public function can_continue_attempt() {
+    public function can_continue_attempt($returnonly = true) {
         global $USER;
-        return $USER->id == $this->userid && !$this->timefinished;
-    }
-
-    public function can_view_attempt() {
+        if ($this->overriden || $USER->id != $this->userid || $this->timefinished) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('something', 'mod_instantquiz'); // TODO
+            }
+        }
+        $instantquiz = $this->instantquiz;
+        $timeopen = $instantquiz->get_attribute('timeopen');
+        $timeclose = $instantquiz->get_attribute('timeclose');
+        $attemptslimit = $instantquiz->get_attribute('attemptslimit');
+        $attemptduration = $instantquiz->get_attribute('attemptduration');
+        $now = time();
+        if ($timeopen && $timeopen > $now) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('notavailable', 'error', $instantquiz->view_link());
+            }
+        }
+        if ($timeclose && $timeclose < $now) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('notavailable', 'error', $instantquiz->view_link());
+            }
+        }
+        if ($attemptduration && $now - $this->timestarted > $attemptduration) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('attempttimedout', 'mod_instantquiz', $instantquiz->view_link());
+            }
+        }
+        if ($attemptslimit && static::count_user_completed_attempts($instantquiz, $USER->id) >= $attemptslimit) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('attemptslimitreached', 'mod_instantquiz', $instantquiz->view_link(), $attemptslimit);
+            }
+        }
         return true;
     }
 
-    public static function can_start_attempt($instantquiz) {
+    /**
+     *
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
+     * @return bool
+     */
+    public function can_view_attempt($returnonly = true) {
         return true;
+    }
+
+    /**
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
+     * @return bool
+     */
+    public static function can_start_attempt(instantquiz_instantquiz $instantquiz, $returnonly = true) {
+        global $USER;
+        $timeopen = $instantquiz->get_attribute('timeopen');
+        $timeclose = $instantquiz->get_attribute('timeclose');
+        $attemptslimit = $instantquiz->get_attribute('attemptslimit');
+        $now = time();
+        if ($timeopen && $timeopen > $now) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('notavailable', 'error', $instantquiz->view_link());
+            }
+        }
+        if ($timeclose && $timeclose < $now) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('notavailable', 'error', $instantquiz->view_link());
+            }
+        }
+        if (($attemptslimit && static::count_user_completed_attempts($instantquiz, $USER->id) >= $attemptslimit) ||
+                ($attemptslimit == 1 && static::get_all_user_attempts($instantquiz, $USER->id))) {
+            // user has already submitted the maximum number of attempts or
+            // attemptslimit is 1 and user does not have any completed attempts but he has an unfinished attempt
+            // (to have the correct processing of maximum attempt duration time)
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('attemptslimitreached', 'mod_instantquiz', $instantquiz->view_link(), $attemptslimit);
+            }
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @param int $userid
+     * @return int
+     */
+    public static function count_user_completed_attempts(instantquiz_instantquiz $instantquiz, $userid) {
+        $attempts = static::get_all_user_attempts($instantquiz, $userid);
+        $cnt = 0;
+        foreach ($attempts as &$attempt) {
+            if ($attempt->timefinished) {
+                $cnt ++;
+            }
+        }
+        return $cnt;
     }
 
     /**
@@ -212,6 +304,7 @@ class instantquiz_attempt extends instantquiz_entity {
      * Evaluates this attempt and updates the record in DB
      */
     public function evaluate() {
+        global $DB;
         $criteria = $this->instantquiz->get_entities('criterion');
 
         // Summarize number of points for each question
@@ -238,7 +331,13 @@ class instantquiz_attempt extends instantquiz_entity {
         // update DB if anything changed
         $changed = false;
         if (!$this->timefinished) {
+            // user finished this attempt, it becomes the current, any other finished attempt
+            // in DB must be marked as overriden
+            $DB->execute("UPDATE {".static::get_table_name()."} SET overriden = 1
+                WHERE instantquizid = ? AND userid = ? AND overriden <> 1",
+                    array($this->instantquiz->id, $this->userid));
             $this->timefinished = time();
+            $this->overriden = 0;
             $changed = true;
         }
         if (join(',', $evaluatedfeedbacks) !== join(',', $this->feedbacks)) {
@@ -276,14 +375,13 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return renderable
      */
     public function continue_attempt() {
-        if (!$this->can_continue_attempt()) {
-            return new instantquiz_collection(array());
-        }
+        // this will throw an exception if
+        $this->can_continue_attempt();
         $this->instantquiz->displaymode = instantquiz_instantquiz::DISPLAYMODE_NORMAL;
         $formclassname = $this->instantquiz->template. '_attempt_form';
         $form = new $formclassname(null, $this);
         if ($form->is_cancelled()) {
-            redirect(new moodle_url('/mod/instantquiz/view.php', array('id' => $this->instantquiz->get_cm()->id)));
+            redirect(new moodle_url($this->instantquiz->view_link()));
         }
         if ($data = $form->get_data()) {
             if (empty($data->answers)) {
@@ -307,17 +405,15 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return renderable
      */
     public static function start_new_attempt($instantquiz) {
-        if ($attempt = static::create($instantquiz)) {
-            return $attempt->continue_attempt();
-        } else {
-            print_error('Not allowed'); // TODO
-        }
+        $attempt = static::create($instantquiz);
+        return $attempt->continue_attempt();
     }
 
     /**
      * @return array
      */
     public static function attempts_list($instantquiz) {
+        // TODO rename to get_all() ?
         global $DB;
         $rv = array();
         if ($records = $DB->get_records_sql('SELECT * FROM {instantquiz_attempt}

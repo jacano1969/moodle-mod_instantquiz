@@ -281,6 +281,10 @@ class instantquiz_instantquiz {
         return new moodle_url('/mod/instantquiz/manage.php', array('cmid' => $this->cm->id) + $params);
     }
 
+    public function view_link($params = array()) {
+        return new moodle_url('/mod/instantquiz/view.php', array('id' => $this->cm->id) + $params);
+    }
+
     public function attempt_link($params = array()) {
         return new moodle_url('/mod/instantquiz/attempt.php', array('cmid' => $this->cm->id) + $params);
     }
@@ -453,14 +457,19 @@ class instantquiz_instantquiz {
         }
         $attempts = $classname::get_all_user_attempts($this, $USER->id);
         foreach ($attempts as &$attempt) {
-            $obj = (object)array('attemptnumber' => $attempt->attemptnumber,
-                'timestarted' => userdate($attempt->timestarted));
+            $obj = (object)array('timestarted' => userdate($attempt->timestarted),
+                'timefinished' => userdate($attempt->timefinished));
             if ($attempt->can_continue_attempt()) {
                 $label = get_string('continueattempt', 'mod_instantquiz', $obj);
                 $elements[] = new single_button($this->attempt_link(array('attemptid' => $attempt->id)), $label);
-            } else if ($attempt->can_view_attempt()) {
-                $label = get_string('viewattempt', 'mod_instantquiz', $obj);
-                $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
+            } else if ($attempt->timefinished && $attempt->can_view_attempt()) {
+                if (!$attempt->overriden) {
+                    $label = get_string('viewcurrentattempt', 'mod_instantquiz', $obj);
+                    $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
+                } else {
+                    $label = get_string('viewpreviousattempt', 'mod_instantquiz', $obj);
+                    $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
+                }
             }
         }
         return new instantquiz_collection($elements);
@@ -485,7 +494,7 @@ class instantquiz_instantquiz {
             if ($attempt->can_continue_attempt()) {
                 return $attempt->continue_attempt();
             }
-        } else if ($attemptid === 'startnew' && $classname::can_start_attempt($this)) {
+        } else if ($attemptid === 'startnew') {
             // Create new attempt
             return $classname::start_new_attempt($this);
         }
@@ -500,15 +509,12 @@ class instantquiz_instantquiz {
         $userid = optional_param('userid', null, PARAM_INT);
         $classname = $this->template. '_attempt';
         if ((int)$attemptid && ($attempt = $classname::get_user_attempt($this, $userid, $attemptid))) {
-            if ($attempt->can_view_attempt()) {
-                $this->displaymode = self::DISPLAYMODE_REVIEW;
-                return new instantquiz_collection(array($attempt,
-                    new single_button(new moodle_url('/mod/instantquiz/view.php',
-                            array('id' => $this->get_cm()->id)),
-                            get_string('back'))));
-            } else {
-                print_error('Not allowd'); // TODO
-            }
+            $attempt->can_view_attempt();
+            $this->displaymode = self::DISPLAYMODE_REVIEW;
+            return new instantquiz_collection(array($attempt,
+                new single_button(new moodle_url('/mod/instantquiz/view.php',
+                        array('id' => $this->get_cm()->id)),
+                        get_string('back'))));
         } else if ($attemptid === 'all' && $userid) {
             $attempts = $classname::get_all_user_attempts($this, $userid);
         } else {

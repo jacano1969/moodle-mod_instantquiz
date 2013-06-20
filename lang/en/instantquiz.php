@@ -70,9 +70,13 @@ $string['questionoption'] = 'Option';
 $string['questionaddoption'] = 'Add option';
 
 $string['attemptnotfound'] = 'Attempt not found';
-$string['continueattempt'] = 'Continue attempt {$a->attemptnumber} started at {$a->timestarted}';
-$string['viewattempt'] = 'View attempt {$a->attemptnumber} started at {$a->timestarted}';
+$string['continueattempt'] = 'Continue unfinished attempt started at {$a->timestarted}';
+$string['viewcurrentattempt'] = 'View current attempt started at {$a->timestarted} and finished at {$a->timefinished}';
+$string['viewpreviousattempt'] = 'View previous attempt started at {$a->timestarted} and finished at {$a->timefinished}';
 $string['startattempt'] = 'Start new attempt';
 
 $string['instantquiz:view'] = 'View and attempt instantquiz ';
 $string['instantquiz:addinstance'] = 'Add a new instantquiz';
+
+$string['attempttimedout'] = 'The submission is overdue';
+$string['attemptslimitreached'] = 'You are only allowed to submit {$a} times';
