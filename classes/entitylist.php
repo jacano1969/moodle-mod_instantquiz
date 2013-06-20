@@ -38,6 +38,8 @@ class instantquiz_entitylist implements renderable {
     var $entitytype;
     /** @var array array of entities */
     var $entities;
+    /** @var array additional parameters */
+    var $params;
 
     /**
      * Constructor
@@ -46,7 +48,7 @@ class instantquiz_entitylist implements renderable {
      * @param string $entitytype
      * @param array $entities
      */
-    public function __construct($instantquiz, $entitytype, $entities = null) {
+    public function __construct($instantquiz, $entitytype, $entities = null, $params = array()) {
         $this->instantquiz = $instantquiz;
         $this->entitytype = $entitytype;
         if ($entities === null) {
@@ -54,5 +56,20 @@ class instantquiz_entitylist implements renderable {
         } else {
             $this->entities = $entities;
         }
+        $this->params = $params;
+    }
+
+    /**
+     * Returns the specified parameter
+     *
+     * @param string $key
+     * @param mixed $defaultvalue
+     * @return mixed
+     */
+    public function get_param($key, $defaultvalue = null) {
+        if (is_array($this->params) && array_key_exists($key, $this->params)) {
+            return $this->params[$key];
+        }
+        return $defaultvalue;
     }
 }

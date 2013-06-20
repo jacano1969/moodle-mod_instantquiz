@@ -279,6 +279,7 @@ class instantquiz_attempt extends instantquiz_entity {
         if (!$this->can_continue_attempt()) {
             return new instantquiz_collection(array());
         }
+        $this->instantquiz->displaymode = instantquiz_instantquiz::DISPLAYMODE_NORMAL;
         $formclassname = $this->instantquiz->template. '_attempt_form';
         $form = new $formclassname(null, $this);
         if ($form->is_cancelled()) {

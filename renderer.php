@@ -215,6 +215,9 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             foreach ($entity->get_feedbacks() as $feedback) {
                 $rv .= $this->render($feedback);
             }
+            $rv .= $this->output->single_button(new moodle_url('/mod/instantquiz/view.php',
+                    array('id' => $entity->instantquiz->get_cm()->id)),
+                    get_string('back'));
         }
 
         return $this->render_instantquiz_entity($entity, $rv);
