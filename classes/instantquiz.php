@@ -425,69 +425,16 @@ class instantquiz_instantquiz {
         $objects[] = new instantquiz_tabs(array($tabrows), $entity);
 
         // Print lists of object (if applicable)
-        if ($cmd === 'list') {
+        if ($cmd === 'list' && in_array($entity, array('question', 'feedback', 'criterion'))) {
             $this->displaymode = self::DISPLAYMODE_EDIT;
-            if ($entity === 'question') {
-                $objects[] = $this->list_questions();
-            } else if ($entity === 'criterion') {
-                $objects[] = $this->list_criterions();
-            } else if ($entity === 'feedback') {
-                $objects[] = $this->list_feedbacks();
-            }
+            $entitylistclassname = $this->template.'_entitylist';
+            $objects[] = new $entitylistclassname($this, $entity);
         }
 
         // Print form if present
         if (!empty($form)) {
             $objects[] = $form;
         }
-        return new instantquiz_collection($objects);
-    }
-
-    /**
-     * Renders html for criteria list on manage page
-     *
-     * @return renderable
-     */
-    protected function list_criterions() {
-        $objects = $this->get_entities('criterion');
-        if (!empty($objects)) {
-            $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'criterion')),
-                    get_string('edit'));
-        }
-        $objects[] = new single_button($this->manage_link(array('cmd' => 'add', 'entity' => 'criterion')),
-                get_string('addcriterion', 'mod_instantquiz'));
-        return new instantquiz_collection($objects);
-    }
-
-    /**
-     * Renders html for feedbacks list on manage page
-     *
-     * @return renderable
-     */
-    protected function list_feedbacks() {
-        $objects = $this->get_entities('feedback');
-        if (!empty($objects)) {
-            $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'feedback')),
-                    get_string('edit'));
-        }
-        $objects[] = new single_button($this->manage_link(array('cmd' => 'add', 'entity' => 'feedback')),
-                get_string('addfeedback', 'mod_instantquiz'));
-        return new instantquiz_collection($objects);
-    }
-
-    /**
-     * Renders html for questions list on manage page
-     *
-     * @return renderable
-     */
-    protected function list_questions() {
-        $objects = $this->get_entities('question');
-        if (!empty($objects)) {
-            $objects[] = new single_button($this->manage_link(array('cmd' => 'edit', 'entity' => 'question')),
-                    get_string('edit'));
-        }
-        $objects[] = new single_button($this->manage_link(array('cmd' => 'add', 'entity' => 'question')),
-                get_string('addquestion', 'mod_instantquiz'));
         return new instantquiz_collection($objects);
     }
 

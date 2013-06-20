@@ -246,46 +246,6 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renderer for instantquiz_criterion_form
-     *
-     * @param instantquiz_criterion_form $form
-     * @return string
-     */
-    protected function render_instantquiz_criterion_form($form) {
-        return $this->render_moodleform($form);
-    }
-
-    /**
-     * Renderer for instantquiz_attempt_form
-     *
-     * @param instantquiz_attempt_form $form
-     * @return string
-     */
-    protected function render_instantquiz_attempt_form($form) {
-        return $this->render_moodleform($form);
-    }
-
-    /**
-     * Renderer for instantquiz_feedback_form
-     *
-     * @param instantquiz_feedback_form $form
-     * @return string
-     */
-    protected function render_instantquiz_feedback_form($form) {
-        return $this->render_moodleform($form);
-    }
-
-    /**
-     * Renderer for instantquiz_question_form
-     *
-     * @param instantquiz_question_form $form
-     * @return string
-     */
-    protected function render_instantquiz_question_form($form) {
-        return $this->render_moodleform($form);
-    }
-
-    /**
      * Renderer for instantquiz_table (makes an html_table renderable)
      *
      * @param instantquiz_table $table
@@ -293,5 +253,29 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      */
     protected function render_instantquiz_table($table) {
         return html_writer::table($table);
+    }
+
+    /**
+     * Renderer for the list of entities (question, feedback, criterion, attempt)
+     *
+     * @param instantquiz_entitylist $entitylist
+     */
+    public function render_instantquiz_entitylist($entitylist) {
+        $output = '';
+        if ($entitylist->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_EDIT &&
+                in_array($entitylist->entitytype, array('question', 'feedback', 'criterion'))) {
+            if (!empty($entitylist->entities)) {
+                foreach ($entitylist->entities as $entity) {
+                    $output .= $this->render($entity);
+                }
+                $output .= $this->single_button($entitylist->instantquiz->manage_link(array('cmd' => 'edit',
+                    'entity' => $entitylist->entitytype)),
+                    get_string('edit'));
+            }
+            $output .= $this->single_button($entitylist->instantquiz->manage_link(array('cmd' => 'add',
+                'entity' => $entitylist->entitytype)),
+                get_string('add'. $entitylist->entitytype, 'mod_instantquiz'));
+        }
+        return $output;
     }
 }
