@@ -299,10 +299,17 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      * @return string
      */
     public function render_instantquiz_summary(instantquiz_summary $summary) {
+        $output = '';
+        if (!empty($summary->totalcount)) {
+            $output .= html_writer::tag('div',
+                html_writer::link($summary->instantquiz->results_link(), $summary->totalcount. ' submissions')); // TODO
+        }
         $properties = array();
         foreach ($summary as $key => $value) {
-            $properties[$key] = $value;
+            if ($key !== 'totalcount') {
+                $output .= html_writer::tag('div', $key. ' = '. $value);
+            }
         }
-        return '<pre>'.print_r($properties, true).'</pre>';
+        return $output;
     }
 }

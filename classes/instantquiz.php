@@ -482,8 +482,6 @@ class instantquiz_instantquiz {
         if ($this->can_view_summary()) {
             $elements[] = $this->get_summary();
         }
-        // All results
-        $elements[] = new single_button($this->results_link(), 'All results'); // TODO
         return new instantquiz_collection($elements);
     }
 
