@@ -218,6 +218,9 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $rv .= $this->output->single_button(new moodle_url('/mod/instantquiz/view.php',
                     array('id' => $entity->instantquiz->get_cm()->id)),
                     get_string('back'));
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW) {
+            $rv .= html_writer::link($entity->instantquiz->results_link(array('attemptid' => $entity->id)), 'USER '.$entity->userid.' at '.
+                    userdate($entity->timefinished)); // TODO strings
         }
 
         return $this->render_instantquiz_entity($entity, $rv);
@@ -278,6 +281,13 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $output .= $this->single_button($entitylist->instantquiz->manage_link(array('cmd' => 'add',
                 'entity' => $entitylist->entitytype)),
                 get_string('add'. $entitylist->entitytype, 'mod_instantquiz'));
+        } else {
+            // By default just render each element
+            if (!empty($entitylist->entities)) {
+                foreach ($entitylist->entities as $entity) {
+                    $output .= $this->render($entity);
+                }
+            }
         }
         return $output;
     }

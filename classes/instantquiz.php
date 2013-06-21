@@ -448,10 +448,27 @@ class instantquiz_instantquiz {
      * @return renderable
      */
     public function view_page() {
-        global $USER;
         $elements = array();
+        // Summary of own attempts
+        $elements[] = $this->own_summary();
+        // Statistics
+        $elements[] = $this->summary();
+        // All results
+        $elements[] = new single_button($this->results_link(), 'All results'); // TODO
+        return new instantquiz_collection($elements);
+    }
+
+    /**
+     * Summary of own attemps to be displayed on the view page
+     *
+     * @return renderable
+     */
+    protected function own_summary() {
+        global $USER;
         $classname = $this->template. '_attempt';
+        $elements = array();
         if ($classname::can_start_attempt($this)) {
+            // Button to start new attempt
             $elements[] = new single_button($this->attempt_link(array('attemptid' => 'startnew')),
                     get_string('startattempt', 'mod_instantquiz'));
         }
@@ -460,18 +477,84 @@ class instantquiz_instantquiz {
             $obj = (object)array('timestarted' => userdate($attempt->timestarted),
                 'timefinished' => userdate($attempt->timefinished));
             if ($attempt->can_continue_attempt()) {
+                // Button to continue the unfinished attempt (note there can be more than one)
                 $label = get_string('continueattempt', 'mod_instantquiz', $obj);
                 $elements[] = new single_button($this->attempt_link(array('attemptid' => $attempt->id)), $label);
             } else if ($attempt->timefinished && $attempt->can_view_attempt()) {
                 if (!$attempt->overriden) {
+                    // Button to view the last finished (current) attempt
                     $label = get_string('viewcurrentattempt', 'mod_instantquiz', $obj);
                     $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
                 } else {
-                    $label = get_string('viewpreviousattempt', 'mod_instantquiz', $obj);
-                    $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
+                    // Previous attempts
+                    // $label = get_string('viewpreviousattempt', 'mod_instantquiz', $obj);
+                    // $elements[] = new single_button($this->results_link(array('attemptid' => $attempt->id)), $label);
                 }
             }
         }
+        return new instantquiz_collection($elements);
+    }
+
+    /**
+     * Returns true if user is able to view statistics
+     *
+     * @param bool $returnonly if false, will throw an exception instead of returning false.
+     * @return bool
+     */
+    protected function can_view_summary($returnonly = true) {
+        global $USER;
+        $resultafteranswer = $this->get_attribute('resultafteranswer');
+        $resultmindate = $this->get_attribute('resultmindate');
+        $resultminanswers = $this->get_attribute('resultminanswers');
+        $now = time();
+        if ($resultmindate && $now < $resultmindate) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('cannotviewsummary', 'mod_instantquiz');
+            }
+        }
+        $attemptclass = $this->template. '_attempt';
+        if ($resultafteranswer && !$attemptclass::get_user_attempt($this, $USER->id)) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('cannotviewsummary', 'mod_instantquiz');
+            }
+        }
+        if ($resultminanswers && $attemptclass::count_completed_attempts($this) < $resultminanswers) {
+            if ($returnonly) {
+                return false;
+            } else {
+                throw new moodle_exception('cannotviewsummary', 'mod_instantquiz');
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Statistics
+     *
+     * In this implementation
+     *
+     * @return renderable
+     */
+    protected function summary() {
+        /*
+         * Different types of summary:
+         * Per feedback:
+         * - number of answers per feedback
+         * - % or answers per feedback
+         * Per criterion:
+         * - number of answers per criterion
+         * -
+         */
+        $elements = array();
+        if (!$this->can_view_summary()) {
+            return new instantquiz_collection($elements);
+        }
+        // Per criterion
+
         return new instantquiz_collection($elements);
     }
 
@@ -516,26 +599,18 @@ class instantquiz_instantquiz {
                         array('id' => $this->get_cm()->id)),
                         get_string('back'))));
         } else if ($attemptid === 'all' && $userid) {
+            $this->displaymode = self::DISPLAYMODE_PREVIEW;
             $attempts = $classname::get_all_user_attempts($this, $userid);
         } else {
+            $this->displaymode = self::DISPLAYMODE_PREVIEW;
             $attempts = $classname::attempts_list($this);
         }
-        $data = array();
+        $visibleattempts = array();
         foreach ($attempts as $attempt) {
             if ($attempt->can_view_attempt()) {
-                $this->displaymode = self::DISPLAYMODE_PREVIEW; // TODO ???
-                $data[] = new html_table_row(array(
-                    html_writer::link($this->results_link(array('attemptid' => $attempt->id)), 'USER '.$attempt->userid.' at '.
-                            userdate($attempt->timefinished))
-                ));
+                $visibleattempts[] = $attempt;
             }
         }
-        if (!empty($data)) {
-            $table = new instantquiz_table();
-            $table->data = $data;
-            return $table;
-        } else {
-            return new instantquiz_collection(array());
-        }
+        return new instantquiz_entitylist($this, 'attempt', $visibleattempts);
     }
 }

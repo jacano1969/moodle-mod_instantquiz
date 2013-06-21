@@ -141,7 +141,7 @@ class instantquiz_attempt extends instantquiz_entity {
         } else if ($userid) {
             $record = $DB->get_record_sql('SELECT * FROM {'.static::get_table_name().'}
                 WHERE userid = :userid
-                AND instantquizid = :instantquizid AND timefinished IS NOT NULL AND overridden = 0',
+                AND instantquizid = :instantquizid AND timefinished IS NOT NULL AND overriden = 0',
                 $params);
         }
         if (!empty($record)) {
@@ -410,6 +410,9 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
+     * Returns list of all current attemps of all users
+     *
+     * @param instantquiz_instantquiz $instantquiz
      * @return array
      */
     public static function attempts_list($instantquiz) {
@@ -426,5 +429,19 @@ class instantquiz_attempt extends instantquiz_entity {
             }
         }
         return $rv;
+    }
+
+    /**
+     * Returns the count of all current attempts of all users
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @return int
+     */
+    public static function count_completed_attempts($instantquiz) {
+        global $DB;
+        return $DB->get_field('SELECT COUNT(*) FROM {instantquiz_attempt}
+            WHERE instantquizid = ?
+            AND timefinished is not null
+            AND overriden = 0', array($instantquiz->id));
     }
 }

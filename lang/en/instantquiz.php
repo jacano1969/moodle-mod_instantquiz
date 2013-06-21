@@ -80,3 +80,4 @@ $string['instantquiz:addinstance'] = 'Add a new instantquiz';
 
 $string['attempttimedout'] = 'The submission is overdue';
 $string['attemptslimitreached'] = 'You are only allowed to submit {$a} times';
+$string['cannotviewsummary'] = 'You are not allowed to view summary';
