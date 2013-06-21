@@ -291,4 +291,18 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
         }
         return $output;
     }
+
+    /**
+     * Renderer for summary
+     *
+     * @param instantquiz_summary $summary
+     * @return string
+     */
+    public function render_instantquiz_summary(instantquiz_summary $summary) {
+        $properties = array();
+        foreach ($summary as $key => $value) {
+            $properties[$key] = $value;
+        }
+        return '<pre>'.print_r($properties, true).'</pre>';
+    }
 }

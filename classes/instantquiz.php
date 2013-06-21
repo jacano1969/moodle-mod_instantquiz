@@ -37,7 +37,8 @@ class instantquiz_instantquiz {
     /** @var stdClass|cm_info information about course module */
     protected $cm;
     /** @var array|null */
-    protected $addinfo;
+    protected $addinfocached;
+    protected $summarycached;
     /** @var */
     var $displaymode = 'attemptmode';
 
@@ -61,6 +62,16 @@ class instantquiz_instantquiz {
         $this->record = $record;
     }
 
+    protected function get_addinfo() {
+        if ($this->addinfocached === null) {
+            $this->addinfocached = array();
+            if (!empty($this->record->addinfo) && $addinfo = @json_decode($this->record->addinfo)) {
+                $this->addinfocached = convert_to_array($addinfo);
+            }
+        }
+        return $this->addinfocached;
+    }
+
     /**
      * Returns the instantquiz attribute (set when editing the module form)
      *
@@ -69,14 +80,9 @@ class instantquiz_instantquiz {
      * @return mixed
      */
     public function get_attribute($key, $defaultvalue = null) {
-        if ($this->addinfo === null) {
-            $this->addinfo = array();
-            if (!empty($this->record->addinfo) && $addinfo = @json_decode($this->record->addinfo)) {
-                $this->addinfo = convert_to_array($addinfo);
-            }
-        }
-        if (array_key_exists($key, $this->addinfo)) {
-            return $this->addinfo[$key];
+        $addinfo = $this->get_addinfo();
+        if (array_key_exists($key, $addinfo)) {
+            return $addinfo[$key];
         } else {
             return $defaultvalue;
         }
@@ -205,10 +211,14 @@ class instantquiz_instantquiz {
 
         // Template can not be changed after instantquiz was created
         unset($data->template);
+        // Summary and course can not be changed from outside
+        unset($data->summary);
+        unset($data->course);
+        unset($data->timecreated);
 
         $data->timemodified = time();
 
-        $addinfo = $this->addinfo;
+        $addinfo = $this->get_addinfo();
         foreach ($data as $key => $value) {
             if (preg_match('/^addinfo_(.+)$/', $key, $matches)) {
                 $addinfo[$matches[1]] = $value;
@@ -217,6 +227,17 @@ class instantquiz_instantquiz {
         $data->addinfo = json_encode($addinfo);
 
         return $DB->update_record('instantquiz', $data);
+    }
+
+    /**
+     * Can only be used from instantquiz_summary class
+     *
+     * @param string|null $valuetostore
+     */
+    public function update_summary($valuetostore) {
+        global $DB;
+        $DB->set_field('instantquiz', 'summary', $valuetostore, array('id' => $this->record->id));
+        $this->record->summary = $valuetostore;
     }
 
     /**
@@ -250,6 +271,12 @@ class instantquiz_instantquiz {
      * @return mixed
      */
     public function __get($name) {
+        if ($name === 'addinfo') {
+            return $this->get_addinfo();
+        }
+        if ($name === 'summary') {
+            return $this->get_summary();
+        }
         return $this->record->$name;
     }
 
@@ -452,7 +479,9 @@ class instantquiz_instantquiz {
         // Summary of own attempts
         $elements[] = $this->own_summary();
         // Statistics
-        $elements[] = $this->summary();
+        if ($this->can_view_summary()) {
+            $elements[] = $this->get_summary();
+        }
         // All results
         $elements[] = new single_button($this->results_link(), 'All results'); // TODO
         return new instantquiz_collection($elements);
@@ -496,6 +525,19 @@ class instantquiz_instantquiz {
     }
 
     /**
+     * Getter method for summary
+     *
+     * @return instantquiz_summary
+     */
+    protected function get_summary() {
+        if ($this->summarycached === null) {
+            $summaryclassname = $this->template.'_summary';
+            $this->summarycached = new $summaryclassname($this, $this->record->summary);
+        }
+        return $this->summarycached;
+    }
+
+    /**
      * Returns true if user is able to view statistics
      *
      * @param bool $returnonly if false, will throw an exception instead of returning false.
@@ -530,32 +572,6 @@ class instantquiz_instantquiz {
             }
         }
         return true;
-    }
-
-    /**
-     * Statistics
-     *
-     * In this implementation
-     *
-     * @return renderable
-     */
-    protected function summary() {
-        /*
-         * Different types of summary:
-         * Per feedback:
-         * - number of answers per feedback
-         * - % or answers per feedback
-         * Per criterion:
-         * - number of answers per criterion
-         * -
-         */
-        $elements = array();
-        if (!$this->can_view_summary()) {
-            return new instantquiz_collection($elements);
-        }
-        // Per criterion
-
-        return new instantquiz_collection($elements);
     }
 
     /**

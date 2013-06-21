@@ -87,7 +87,7 @@ abstract class instantquiz_entity implements renderable {
      * @param instantquiz_instantquiz $instantquiz
      * @return array of instantquiz_entity
      */
-    public static final function get_all($instantquiz) {
+    public static function get_all($instantquiz) {
         global $DB;
         $questions = array();
         if ($records = $DB->get_records(static::get_table_name(), array('instantquizid' => $instantquiz->id))) {

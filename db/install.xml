@@ -14,7 +14,8 @@
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="introformat" NEXT="timemodified"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated" NEXT="template"/>
         <FIELD NAME="template" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" PREVIOUS="timemodified" NEXT="addinfo"/>
-        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Contains all additional seetings the instantquiz template wants to store" PREVIOUS="template"/>
+        <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Contains all additional seetings the instantquiz template wants to store" PREVIOUS="template" NEXT="summary"/>
+        <FIELD NAME="summary" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Contains summarized information" PREVIOUS="addinfo"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -42,8 +43,8 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="true" NEXT="instantquizid"/>
         <FIELD NAME="instantquizid" TYPE="int" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
-        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="name"/>
-        <FIELD NAME="question" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="questionformat"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="9" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="instantquizid" NEXT="question"/>
+        <FIELD NAME="question" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="sortorder" NEXT="questionformat"/>
         <FIELD NAME="questionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="question" NEXT="options"/>
         <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="questionformat" NEXT="addinfo"/>
         <FIELD NAME="addinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="options"/>

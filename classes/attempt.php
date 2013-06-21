@@ -147,6 +147,7 @@ class instantquiz_attempt extends instantquiz_entity {
         if (!empty($record)) {
             return new static($instantquiz, $record);
         }
+        return null;
     }
 
     /**
@@ -330,9 +331,11 @@ class instantquiz_attempt extends instantquiz_entity {
 
         // update DB if anything changed
         $changed = false;
+        // get the current attempt state
+        $currentattempt = static::get_user_attempt($this->instantquiz, $this->userid);
         if (!$this->timefinished) {
-            // user finished this attempt, it becomes the current, any other finished attempt
-            // in DB must be marked as overriden
+            // user finished this attempt, it becomes the current
+            // any other finished attempt in DB must be marked as overriden
             $DB->execute("UPDATE {".static::get_table_name()."} SET overriden = 1
                 WHERE instantquizid = ? AND userid = ? AND overriden <> 1",
                     array($this->instantquiz->id, $this->userid));
@@ -346,6 +349,7 @@ class instantquiz_attempt extends instantquiz_entity {
         }
         if ($changed) {
             $this->update();
+            $this->instantquiz->summary->entity_updated('attempt', $currentattempt, $this);
         }
     }
 
@@ -410,16 +414,15 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
-     * Returns list of all current attemps of all users
+     * Retrieves all entities from database
      *
      * @param instantquiz_instantquiz $instantquiz
-     * @return array
+     * @return array of instantquiz_entity
      */
-    public static function attempts_list($instantquiz) {
-        // TODO rename to get_all() ?
+    public static function get_all($instantquiz) {
         global $DB;
         $rv = array();
-        if ($records = $DB->get_records_sql('SELECT * FROM {instantquiz_attempt}
+        if ($records = $DB->get_records_sql('SELECT * FROM {'.static::get_table_name().'}
             WHERE instantquizid = ?
             AND timefinished is not null
             AND overriden = 0
@@ -429,6 +432,17 @@ class instantquiz_attempt extends instantquiz_entity {
             }
         }
         return $rv;
+    }
+
+    /**
+     * Returns list of all current attemps of all users
+     *
+     * @param instantquiz_instantquiz $instantquiz
+     * @return array
+     */
+    public static function attempts_list($instantquiz) {
+        // TODO rename to get_all()
+        return static::get_all($instantquiz);
     }
 
     /**
