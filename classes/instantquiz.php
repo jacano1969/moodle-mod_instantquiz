@@ -506,7 +506,7 @@ class instantquiz_instantquiz {
             $elements[] = new single_button($this->attempt_link(array('attemptid' => 'startnew')),
                     get_string('startattempt', 'mod_instantquiz'));
         }
-        $attempts = $classname::get_all_user_attempts($this, $USER->id);
+        $attempts = $classname::get_user_attempts_history($this, $USER->id);
         foreach ($attempts as &$attempt) {
             $obj = (object)array('timestarted' => userdate($attempt->timestarted),
                 'timefinished' => userdate($attempt->timefinished));
@@ -621,10 +621,10 @@ class instantquiz_instantquiz {
                         get_string('back'))));
         } else if ($attemptid === 'all' && $userid) {
             $this->displaymode = self::DISPLAYMODE_PREVIEW;
-            $attempts = $classname::get_all_user_attempts($this, $userid);
+            $attempts = $classname::get_user_attempts_history($this, $userid);
         } else {
             $this->displaymode = self::DISPLAYMODE_PREVIEW;
-            $attempts = $classname::attempts_list($this);
+            $attempts = $classname::get_all_attempts($this);
         }
         $visibleattempts = array();
         foreach ($attempts as $attempt) {

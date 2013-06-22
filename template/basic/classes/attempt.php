@@ -99,12 +99,12 @@ class instantquiztmpl_basic_attempt extends instantquiz_attempt {
      * @param int $userid
      * @return instantquiz_attempt
      */
-    public static function get_all_user_attempts($instantquiz, $userid) {
+    public static function get_user_attempts_history($instantquiz, $userid) {
         global $USER;
         $context = $instantquiz->get_context();
         if (($USER->id == $userid && has_capability('instantquiztmpl/basic:viewownattempt', $context))
                 || has_capability('instantquiztmpl/basic:viewanyattempt', $context)) {
-            return parent::get_all_user_attempts($instantquiz, $userid);
+            return parent::get_user_attempts_history($instantquiz, $userid);
         }
         return array();
     }
@@ -112,13 +112,14 @@ class instantquiztmpl_basic_attempt extends instantquiz_attempt {
     /**
      * @return array
      */
-    public static function attempts_list($instantquiz) {
+    public static function get_all_attempts($instantquiz) {
         global $USER;
         $context = $instantquiz->get_context();
         if (has_capability('instantquiztmpl/basic:viewanyattempt', $context)) {
-            return parent::attempts_list($instantquiz);
-        } else if (has_capability('instantquiztmpl/basic:viewownattempt', $context)) {
-            return parent::get_user_attempt($instantquiz, $USER->id);
+            return static::get_all($instantquiz);
+        } else if (has_capability('instantquiztmpl/basic:viewownattempt', $context) &&
+                ($attempt = parent::get_user_attempt($instantquiz, $USER->id))) {
+            return array($attempt);
         }
         return array();
     }

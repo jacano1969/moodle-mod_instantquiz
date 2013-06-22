@@ -157,7 +157,7 @@ class instantquiz_attempt extends instantquiz_entity {
      * @param int $userid
      * @return instantquiz_attempt
      */
-    public static function get_all_user_attempts($instantquiz, $userid) {
+    public static function get_user_attempts_history($instantquiz, $userid) {
         global $DB;
         if (!isset(self::$alluserattempts[$userid])) {
             self::$alluserattempts[$userid] = array();
@@ -259,7 +259,7 @@ class instantquiz_attempt extends instantquiz_entity {
             }
         }
         if (($attemptslimit && static::count_user_completed_attempts($instantquiz, $USER->id) >= $attemptslimit) ||
-                ($attemptslimit == 1 && static::get_all_user_attempts($instantquiz, $USER->id))) {
+                ($attemptslimit == 1 && static::get_user_attempts_history($instantquiz, $USER->id))) {
             // user has already submitted the maximum number of attempts or
             // attemptslimit is 1 and user does not have any completed attempts but he has an unfinished attempt
             // (to have the correct processing of maximum attempt duration time)
@@ -279,7 +279,7 @@ class instantquiz_attempt extends instantquiz_entity {
      * @return int
      */
     public static function count_user_completed_attempts(instantquiz_instantquiz $instantquiz, $userid) {
-        $attempts = static::get_all_user_attempts($instantquiz, $userid);
+        $attempts = static::get_user_attempts_history($instantquiz, $userid);
         $cnt = 0;
         foreach ($attempts as &$attempt) {
             if ($attempt->timefinished) {
@@ -483,9 +483,15 @@ class instantquiz_attempt extends instantquiz_entity {
      * @param instantquiz_instantquiz $instantquiz
      * @return array
      */
-    public static function attempts_list($instantquiz) {
-        // TODO rename to get_all()
-        return static::get_all($instantquiz);
+    public static function get_all_attempts($instantquiz) {
+        $rv = array();
+        $attempts = static::get_all($instantquiz);
+        foreach ($attempts as &$attempt) {
+            if ($attempt->can_view_attempt()) {
+                $rv[] = &$attempt;
+            }
+        }
+        return $rv;
     }
 
     /**
