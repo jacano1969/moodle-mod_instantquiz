@@ -156,20 +156,22 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
         $rv = '';
         if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_REVIEW) {
             $answer = $entity->currentanswer;
-            $preview = format_text($entity->question, $entity->questionformat,
-                array('context' => $entity->instantquiz->get_context())).
-                    print_r($answer,true);
-            return $preview;
-        }
-        if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_NORMAL) {
-            return format_text($entity->question, $entity->questionformat,
+            $rv = format_text($entity->question, $entity->questionformat,
                 array('context' => $entity->instantquiz->get_context()));
-        }
-        if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW ||
+            $rv .= html_writer::start_tag('ul');
+            foreach ($entity->options as $option) {
+                if ($answer && $answer == $option['idx']) {
+                    $rv .= html_writer::tag('li', $option['value']);
+                }
+            }
+            $rv .= html_writer::end_tag('ul');
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_NORMAL) {
+            $rv .= format_text($entity->question, $entity->questionformat,
+                array('context' => $entity->instantquiz->get_context()));
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW ||
                 $entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_EDIT) {
-            return $this->render_instantquiz_question_preview($entity);
+            $rv .= $this->render_instantquiz_question_preview($entity);
         }
-
         return $this->render_instantquiz_entity($entity, $rv);
     }
 
