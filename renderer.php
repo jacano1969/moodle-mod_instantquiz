@@ -119,9 +119,16 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $rv = $entity->get_formatted_feedback();
         } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_EDIT ||
                 $entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW) {
-            $rv = $entity->get_formatted_feedback(); // TODO truncate
+            $rv = $entity->get_formatted_feedback(array(), true);
             if (!empty($entity->addinfo['formula'])) {
                 $rv .= '<div><b>'. $entity->addinfo['formula']. '</b></div>';
+            }
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_SUMMARY) {
+            $summary = $entity->instantquiz->summary->by_feedback($entity);
+            $rv = $entity->get_formatted_feedback(array(), true). ' : ';
+            $rv .= $summary->feedbacks;
+            if ($summary->totalcount) {
+                $rv .= ' = '. sprintf("%d", $summary->feedbacks/$summary->totalcount*100). '%';
             }
         }
         return $this->render_instantquiz_entity($entity, $rv);
@@ -140,6 +147,17 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
         if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW ||
                 $entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_EDIT) {
             $rv = $entity->criterion;
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_SUMMARY) {
+            $summary = $entity->instantquiz->summary->by_criterion($entity);
+            $rv = $entity->criterion. ' : ';
+            if ($summary->totalcount) {
+                $rv .= sprintf("%.2f", $summary->points/$summary->totalcount). ' / '. $summary->maxpoints;
+                if ($summary->maxpoints) {
+                    $rv .= ' = '. sprintf("%d", $summary->points/$summary->totalcount/$summary->maxpoints*100). '%';
+                }
+            } else {
+                $rv .= '- / '. $summary->maxpoints;
+            }
         }
         return $this->render_instantquiz_entity($entity, $rv);
     }
@@ -153,43 +171,62 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      * @return string
      */
     public function render_instantquiz_question(instantquiz_question $entity) {
-        $rv = '';
-        if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_REVIEW) {
-            $answer = $entity->currentanswer;
-            $rv = format_text($entity->question, $entity->questionformat,
-                array('context' => $entity->instantquiz->get_context()));
-            $rv .= html_writer::start_tag('ul');
-            foreach ($entity->options as $option) {
-                if ($answer && $answer == $option['idx']) {
-                    $rv .= html_writer::tag('li', $option['value']);
-                }
-            }
-            $rv .= html_writer::end_tag('ul');
-        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_NORMAL) {
-            $rv .= format_text($entity->question, $entity->questionformat,
-                array('context' => $entity->instantquiz->get_context()));
-        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW ||
-                $entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_EDIT) {
-            $rv .= $this->render_instantquiz_question_preview($entity);
-        }
-        return $this->render_instantquiz_entity($entity, $rv);
-    }
-
-    /**
-     * Renders the instantquiz question to show to the user (preview mode)
-     *
-     * @param instantquiz_question $entity
-     * @return string
-     */
-    public function render_instantquiz_question_preview(instantquiz_question $entity) {
         $rv = format_text($entity->question, $entity->questionformat,
             array('context' => $entity->instantquiz->get_context()));
-        if (!empty($entity->options)) {
-            $lines = array();
-            foreach ($entity->options as $option) {
-                $lines[] = html_writer::tag('li', $option['value']);
+
+        if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_REVIEW) {
+            // DISPLAYMODE_REVIEW
+            $answer = $entity->currentanswer;
+            if (!empty($entity->options)) {
+                $rv .= html_writer::start_tag('ul');
+                foreach ($entity->options as $option) {
+                    if ($answer && $answer == $option['idx']) {
+                        $rv .= html_writer::tag('li', $option['value']);
+                    }
+                }
+                $rv .= html_writer::end_tag('ul');
             }
-            $rv .= html_writer::tag('ul', join('', $lines));
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_NORMAL) {
+            // DISPLAYMODE_NORMAL
+            // just the question text, the options are the part of the form
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW ||
+                $entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_EDIT) {
+            // DISPLAYMODE_PREVIEW, DISPLAYMODE_EDIT
+            if (!empty($entity->options)) {
+                $lines = array();
+                foreach ($entity->options as $option) {
+                    $lines[] = html_writer::tag('li', $option['value']);
+                }
+                $rv .= html_writer::tag('ul', join('', $lines));
+            }
+        } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_SUMMARY) {
+            // DISPLAYMODE_SUMMARY
+            $summary = $entity->instantquiz->summary->by_question($entity);
+            $criteria = $entity->instantquiz->get_entities('criterion');
+            $rv .= html_writer::start_tag('ul');
+            foreach ($criteria as $criterion) {
+                $rv .= html_writer::start_tag('li');
+                $rv .= $criterion->criterion. ' : ';
+                if ($summary->totalcount) {
+                    $rv .= sprintf("%.2f", $summary->points[$criterion->id]/$summary->totalcount). ' / '. $summary->maxpoints[$criterion->id];
+                    if ($summary->maxpoints[$criterion->id]) {
+                        $rv .= ' = '. sprintf("%d", $summary->points[$criterion->id]/$summary->totalcount/$summary->maxpoints[$criterion->id]*100). '%';
+                    }
+                } else {
+                    $rv .= '- / '. $summary->maxpoints[$criterion->id];
+                }
+                $rv .= html_writer::end_tag('li');
+            }
+            $rv .= html_writer::end_tag('ul');
+            /*
+            if (!empty($entity->options)) {
+                $lines = array();
+                foreach ($entity->options as $option) {
+                    $lines[] = html_writer::tag('li', $option['value']);
+                }
+                $rv .= html_writer::tag('ul', join('', $lines));
+            }
+             */
         }
         return $this->render_instantquiz_entity($entity, $rv);
     }
@@ -219,7 +256,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             }
             $rv .= $this->output->single_button(new moodle_url('/mod/instantquiz/view.php',
                     array('id' => $entity->instantquiz->get_cm()->id)),
-                    get_string('back'));
+                    get_string('back'), 'GET');
         } else if ($entity->instantquiz->displaymode === instantquiz_instantquiz::DISPLAYMODE_PREVIEW) {
             $rv .= html_writer::link($entity->instantquiz->results_link(array('attemptid' => $entity->id)), 'USER '.$entity->userid.' at '.
                     userdate($entity->timefinished)); // TODO strings
@@ -301,17 +338,44 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
      * @return string
      */
     public function render_instantquiz_summary(instantquiz_summary $summary) {
-        $output = '';
+        $output = html_writer::tag('h3', get_string('summary', 'mod_instantquiz'));
         if (!empty($summary->totalcount)) {
             $output .= html_writer::tag('div',
-                html_writer::link($summary->instantquiz->results_link(), $summary->totalcount. ' submissions')); // TODO
+                html_writer::link($summary->instantquiz->results_link(), $summary->totalcount. ' submissions'), // TODO string
+                    array('class' => 'totalcount'));
         }
-        $properties = array();
-        foreach ($summary as $key => $value) {
-            if ($key !== 'totalcount') {
-                $output .= html_writer::tag('div', $key. ' = '. $value);
+
+        $summary->instantquiz->displaymode = instantquiz_instantquiz::DISPLAYMODE_SUMMARY;
+
+        if (!empty($summary->points['c'])) {
+            // Show statistics by criterion
+            $output .= html_writer::tag('h4', get_string('summarybycriterion', 'mod_instantquiz'));
+            $criteria = $summary->instantquiz->get_entities('criterion');
+            foreach ($criteria as &$criterion) {
+                $output .= $this->render($criterion);
             }
         }
-        return $output;
+
+        if (!empty($summary->feedbacks)) {
+            // Show statistics by feedback
+            $output .= html_writer::tag('h4', get_string('summarybyfeedback', 'mod_instantquiz'));
+            $feedbacks = $summary->instantquiz->get_entities('feedback');
+            foreach ($feedbacks as &$feedback) {
+                $output .= $this->render($feedback);
+            }
+        }
+
+        if (!empty($summary->points['q']) || !empty($summary->answers)) {
+            // Show statistics by question
+            $output .= html_writer::tag('h4', get_string('summarybyquestion', 'mod_instantquiz'));
+            $questions = $summary->instantquiz->get_entities('question');
+            foreach ($questions as &$question) {
+                $output .= $this->render($question);
+            }
+        }
+
+        $classes = array('instantquiz_summary', $summary->instantquiz->template. '_summary');
+        return html_writer::tag('div', $output,
+                array('class' => join(' ', $classes)));
     }
 }

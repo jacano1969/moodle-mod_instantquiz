@@ -46,6 +46,7 @@ class instantquiz_instantquiz {
     const DISPLAYMODE_REVIEW  = 'reviewmode'; // When reviewing the attempt
     const DISPLAYMODE_PREVIEW = 'previewmode'; // Preview
     const DISPLAYMODE_EDIT    = 'managemode'; // Editng mode, on manage page
+    const DISPLAYMODE_SUMMARY = 'summarymode'; // In summary
 
     /**
      * Constructor

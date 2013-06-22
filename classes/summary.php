@@ -77,7 +77,53 @@ class instantquiz_summary implements renderable, IteratorAggregate {
     protected function calculate() {
         $summary = array();
         $attempts = $this->instantquiz->get_entities('attempt');
+        $feedbacks = $this->instantquiz->get_entities('feedback');
+        $questions = $this->instantquiz->get_entities('question');
+        $criteria = $this->instantquiz->get_entities('criterion');
+
         $summary['totalcount'] = count($attempts);
+        $summary['feedbacks'] = array();
+        $summary['answers'] = array();
+        $summary['points'] = array('q' => array(), 'c' => array());
+        foreach ($feedbacks as &$feedback) {
+            $summary['feedbacks'][$feedback->id] = 0;
+        }
+        foreach ($criteria as &$criterion) {
+            $summary['points']['c'][$criterion->id] = 0;
+            $summary['maxpoints']['c'][$criterion->id] = 0;
+        }
+        foreach ($questions as &$question) {
+            $summary['points']['q'][$question->id] = array();
+            $maxpoints = $question->max_possible_points();
+            $summary['answers'][$question->id] = array();
+            foreach ($criteria as &$criterion) {
+                $summary['points']['q'][$question->id][$criterion->id] = 0;
+                $summary['maxpoints']['q'][$question->id][$criterion->id] = 0;
+                if (!empty($maxpoints[$criterion->id])) {
+                    $summary['maxpoints']['q'][$question->id][$criterion->id] = $maxpoints[$criterion->id];
+                    $summary['maxpoints']['c'][$criterion->id] += $maxpoints[$criterion->id];
+                }
+            }
+        }
+        foreach ($attempts as &$attempt) {
+            foreach ($attempt->feedbacks as $fid) {
+                $summary['feedbacks'][$fid] = empty($summary['feedbacks'][$fid]) ? 1 : ($summary['feedbacks'][$fid]+1);
+            }
+            foreach ($attempt->answers as $qid => $answer) {
+                $summary['answers'][$qid][] = $answer;
+            }
+            foreach ($attempt->points['c'] as $cid => $points) {
+                if (!isset($summary['points']['c'][$cid])) { $summary['points']['c'][$cid] = 0; }
+                $summary['points']['c'][$cid] += $points;
+            }
+            foreach ($attempt->points['q'] as $qid => $critpoints) {
+                foreach ($critpoints as $cid => $points) {
+                    if (!isset($summary['points']['q'][$qid])) { $summary['points']['q'][$qid] = array(); }
+                    if (!isset($summary['points']['q'][$qid][$cid])) { $summary['points']['q'][$qid][$cid] = 0; }
+                    $summary['points']['q'][$qid][$cid] += $points;
+                }
+            }
+        }
         return $summary;
     }
 
@@ -91,10 +137,63 @@ class instantquiz_summary implements renderable, IteratorAggregate {
      * @param mixed $oldvalue may be an array of old values or an old entity, or null if the entity was just created
      */
     public function entity_updated($entity, $oldvalue = null) {
+        /*
+        if ($oldvalue === null) {
+            echo "created entity ".get_class($entity)." - ". $entity->id. '<br>';
+        } else {
+            echo "updated entity ".get_class($entity)." - ". $entity->id."; changed fields = ".join(', ', array_keys(convert_to_array($oldvalue))).'<br>';
+        }
+         */
         if ($this->summarycached === null) {
             // The summary is already reset, no need to check anything
+            return;
         }
         // TODO some updates do not change stats or can be recalculated
         $this->reset();
+    }
+
+    /**
+     * Returns summary by criterion
+     *
+     * @param instantquiz_criterion $criterion
+     * @return stdClass;
+     */
+    public function by_criterion($criterion) {
+        // TODO check for empty ?
+        return (object)array(
+            'totalcount' => $this->totalcount,
+            'points' => $this->points['c'][$criterion->id],
+            'maxpoints' => $this->maxpoints['c'][$criterion->id],
+        );
+    }
+
+    /**
+     * Returns summary by feedback
+     *
+     * @param instantquiz_feedback $feedback
+     * @return stdClass;
+     */
+    public function by_feedback($feedback) {
+        // TODO check for empty ?
+        return (object)array(
+            'totalcount' => $this->totalcount,
+            'feedbacks' => $this->feedbacks[$feedback->id],
+        );
+    }
+
+    /**
+     * Returns summary by question
+     *
+     * @param instantquiz_question $question
+     * @return stdClass;
+     */
+    public function by_question($question) {
+        // TODO check for empty ?
+        return (object)array(
+            'totalcount' => $this->totalcount,
+            'points' => $this->points['q'][$question->id],
+            'maxpoints' => $this->maxpoints['q'][$question->id],
+            'answers' => $this->answers[$question->id],
+        );
     }
 }

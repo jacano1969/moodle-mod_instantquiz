@@ -36,6 +36,10 @@ $string['pluginname'] = 'Instant quiz';
 $string['subplugintype_instantquiztmpl'] = 'Template';
 $string['subplugintype_instantquiztmpl_plural'] = 'Templates';
 $string['manage'] = 'Edit instant quiz';
+$string['summary'] = 'Summary';
+$string['summarybycriterion'] = 'By criterion';
+$string['summarybyfeedback'] = 'By feedback';
+$string['summarybyquestion'] = 'By question';
 
 $string['attemptslimit'] = 'Limit number of attempts';
 $string['attemptslimit_help'] = 'Maximum number of times the user is allowed to answer the questions';

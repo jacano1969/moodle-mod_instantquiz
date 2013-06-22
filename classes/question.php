@@ -135,6 +135,30 @@ class instantquiz_question extends instantquiz_entity {
     }
 
     /**
+     * Calculates the maximum number of points that can be potentially earned for each criterion independently
+     *
+     * @return array array of points, indexed by criterion id
+     */
+    public function max_possible_points() {
+        $points = array();
+        foreach ($this->options as $option) {
+            foreach ($option['points'] as $critid => $pts) {
+                if (!isset($points[$critid])) {
+                    $points[$critid] = array();
+                }
+                $points[$critid][] = floatval($pts);
+            }
+        }
+        $maxpoints = array();
+        foreach (array_keys($points) as $critid) {
+            sort($points[$critid], SORT_NUMERIC);
+            // TODO Supposing there can be only exaclty 1 option selected
+            $maxpoints[$critid] = array_pop($points[$critid]);
+        }
+        return $maxpoints;
+    }
+
+    /**
      * Updates or creates entry in DB
      */
     public function update() {

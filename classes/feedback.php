@@ -141,8 +141,16 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
      * @param array $params additional params to pass to format_text()
      * @return string
      */
-    public function get_formatted_feedback($params = array()) {
-        return format_text($this->feedback, $this->feedbackformat,
+    public function get_formatted_feedback($params = array(), $truncate = false) {
+        // TODO truncate
+        $text = format_text($this->feedback, $this->feedbackformat,
             array('context' => $this->instantquiz->get_context()) + $params);
+        if ($truncate) {
+            $text = strip_tags($text);
+            if (strlen($text) > 200) {
+                $text = substr($text, 0, 200). '...';
+            }
+        }
+        return $text;
     }
 }
