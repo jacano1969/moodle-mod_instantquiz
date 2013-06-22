@@ -84,7 +84,7 @@ class instantquiz_question extends instantquiz_entity {
         $all = self::get_all($instantquiz);
         $defaultvalues->sortorder = count($all);
         $defaultvalues->question = get_string('defquestion', 'mod_instantquiz', $defaultvalues->sortorder + 1);
-        $defaultvalues->questionformat = FORMAT_MOODLE;
+        $defaultvalues->questionformat = FORMAT_HTML;
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
         $instantquiz->summary->entity_updated($entity);
@@ -116,12 +116,10 @@ class instantquiz_question extends instantquiz_entity {
         if ($answer === null) {
             return array();
         }
-        if (!is_array($answer)) {
-            $answer = array($answer => 1);
-        }
+        $options = $answer['options'];
         $points = array();
         foreach ($this->options as $option) {
-            if (array_key_exists($option['idx'], $answer)) {
+            if (array_key_exists($option['idx'], $options)) {
                 // get the points for an answer
                 foreach ($option['points'] as $critid => $pts) {
                     if (!isset($points[$critid])) {

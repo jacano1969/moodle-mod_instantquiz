@@ -297,7 +297,15 @@ class instantquiz_attempt extends instantquiz_entity {
      */
     public function get_answer($questionid) {
         if (isset($this->answers[$questionid])) {
-            return $this->answers[$questionid];
+            $answer = $this->answers[$questionid];
+            if (!isset($answer['options'])) {
+                $answer['options'] = array();
+                if (isset($answer['option'])) {
+                    // transfer radio button output to checkbox-like output for consistency
+                    $answer['options'] = array($answer['option'] => 1);
+                }
+            }
+            return $answer;
         }
         return null;
     }
@@ -360,7 +368,7 @@ class instantquiz_attempt extends instantquiz_entity {
         // Get the number of points for each question
         $criteria = $this->instantquiz->get_entities('criterion');
         $questions = $this->instantquiz->get_entities('question');
-        foreach ($questions as $id => $question) {
+        foreach ($questions as $id => &$question) {
             $this->points['q'][$id] = $question->earned_points($this);
         }
 

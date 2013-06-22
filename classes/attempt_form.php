@@ -62,15 +62,14 @@ class instantquiz_attempt_form extends moodleform implements renderable {
             /* Option 1: Display as radio elements */
             $elementobjs = array();
             foreach ($question->options as $option) {
-                $elementobjs[] = $mform->createElement('radio', $question->id, '', $option['value'], (int)$option['idx']);
-                //$elementobjs[] = $mform->createElement('static', '','', $option['value']);
+                $elementobjs[] = $mform->createElement('radio', $question->id.'][option', '', $option['value'], (int)$option['idx']);
             }
             $mform->addElement('group', 'answers', '', $elementobjs);
 
             /* Option 2: Display as checkboxes */
-            //foreach ($question->options as $option) {
-            //    $mform->addElement('advcheckbox', 'answers['.$question->id.']['.$option['idx'].']', '', $option['value'], (int)$option['idx']);
-            //}
+            /*foreach ($question->options as $option) {
+                $mform->addElement('advcheckbox', 'answers['.$question->id.'][options]['.$option['idx'].']', '', $option['value'], (int)$option['idx']);
+            }*/
         }
 
         $this->add_action_buttons(true, get_string('savechanges')); // TODO "proceed"

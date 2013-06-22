@@ -1,9 +1,8 @@
 Instant quiz provides functionality to create non-gradable tests, surveys,
 feedbacks and/or questionnaires. Student answers the questions and
-receives an instant feedback. Teacher can view aggregated statistics,
-or individual answers or even nothing if this is a teacher evaluation in the
-end of the course. It depends on how permissions are configured for the
-particular test.
+receives an instant feedback. Users can view aggregated statistics, or
+individual answers or even nothing. It depends on how permissions are configured
+for the particular test.
 
 How instant quiz works:
 
