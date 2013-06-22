@@ -70,6 +70,7 @@ class instantquiz_attempt extends instantquiz_entity {
         $defaultvalues->overriden = 0;
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
+        // no call of summary::entity_updated() is needed here because attempt is not completed yet
         return $entity;
     }
 
@@ -302,37 +303,82 @@ class instantquiz_attempt extends instantquiz_entity {
     }
 
     /**
-     * Evaluates this attempt and updates the record in DB
+     * Checks if all questions are answered and the attempt can be evaluated,
+     * otherwise it can be saved as work-in-progress
+     *
+     * @param stdClass $data
+     * @return bool
      */
-    public function evaluate() {
+    protected function ready_to_evaluate($data) {
+        $questions = $this->instantquiz->get_entities('question');
+        $rv = true;
+        foreach ($questions as $id => $question) {
+            if (!$question->is_answered($data, $this)) {
+                $rv = false;
+            }
+        }
+        if (!empty($data->answers)) {
+            foreach ($data->answers as $id => $answer) {
+                $this->answers[$id] = $answer;
+            }
+        }
+        return $rv;
+    }
+
+    /**
+     * Evaluates this attempt and updates the record in DB
+     *
+     * This function calls {@link instantquiz_question::earned_points()}
+     * and {@link instantquiz_criterion::get_total_points()}
+     * and {@link instantquiz_feedback::is_applicable()}
+     *
+     * @param stdClass $data data from the form
+     */
+    public function update_and_evaluate($data) {
         global $DB;
+        // Remember the attempt that is this user's current attempt (it may be this or another attempt)
+        $usercurrentattempt = static::get_user_attempt($this->instantquiz, $this->userid);
+        // Remember the values of calculated fields for this particular attempt
+        $oldvalue = new stdClass();
+        $oldvalue->feedbacks = json_encode($this->feedbacks);
+        $oldvalue->points = json_encode($this->points);
+        $oldvalue->answers = json_encode($this->answers);
+        // Reset the current caclulated fields
+        $this->points = array('c' => array(), 'q' => array()); // points by criteria and by question&criteria
+        $this->feedbacks = array();
+
+        if (!$this->ready_to_evaluate($data)) {
+            if ($this->timefinished) {
+                // TODO some error or something
+            }
+            if (json_encode($this->answers) !== $oldvalue->answers) {
+                $this->update();
+            }
+            return;
+        }
+
+        // Get the number of points for each question
         $criteria = $this->instantquiz->get_entities('criterion');
+        $questions = $this->instantquiz->get_entities('question');
+        foreach ($questions as $id => $question) {
+            $this->points['q'][$id] = $question->earned_points($this);
+        }
 
         // Summarize number of points for each question
-        $questions = $this->instantquiz->get_entities('question');
-        $points = array_fill_keys(array_keys($criteria), 0);
-        foreach ($questions as $id => $question) {
-            $questionpoints = $question->earned_points($this->get_answer($id));
-            foreach ($points as $critid => $pts) {
-                if (!empty($questionpoints[$critid])) {
-                    $points[$critid] += $questionpoints[$critid];
-                }
-            }
+        foreach (array_keys($criteria) as $critid) {
+            $this->points['c'][$critid] = $criteria[$critid]->get_total_points($this);
         }
 
         // Evaluate formula for each feedback and find list of feedbacks for this instantquiz
-        $feedbacks = $this->instantquiz->get_entities('feedback');
-        $evaluatedfeedbacks = array();
-        foreach ($feedbacks as $fid => &$feedback) {
-            if ($feedback->is_applicable($points)) {
-                $evaluatedfeedbacks[] = $fid;
+        $allfeedbacks = $this->instantquiz->get_entities('feedback');
+        foreach ($allfeedbacks as $fid => &$feedback) {
+            if ($feedback->is_applicable($this)) {
+                $this->feedbacks[] = $fid;
             }
         }
 
         // update DB if anything changed
         $changed = false;
-        // get the current attempt state
-        $currentattempt = static::get_user_attempt($this->instantquiz, $this->userid);
         if (!$this->timefinished) {
             // user finished this attempt, it becomes the current
             // any other finished attempt in DB must be marked as overriden
@@ -342,14 +388,14 @@ class instantquiz_attempt extends instantquiz_entity {
             $this->timefinished = time();
             $this->overriden = 0;
             $changed = true;
-        }
-        if (join(',', $evaluatedfeedbacks) !== join(',', $this->feedbacks)) {
-            $this->feedbacks = $evaluatedfeedbacks;
+        } else if (json_encode($this->feedbacks) !== $oldvalue->feedbacks ||
+                json_encode($this->points) !== $oldvalue->points ||
+                json_encode($this->answers) !== $oldvalue->answers) {
             $changed = true;
         }
         if ($changed) {
             $this->update();
-            $this->instantquiz->summary->entity_updated('attempt', $currentattempt, $this);
+            $this->instantquiz->summary->entity_updated($this, $usercurrentattempt);
         }
     }
 
@@ -388,16 +434,13 @@ class instantquiz_attempt extends instantquiz_entity {
             redirect(new moodle_url($this->instantquiz->view_link()));
         }
         if ($data = $form->get_data()) {
-            if (empty($data->answers)) {
-                $data->answers = array();
-            }
-            $this->answers = $data->answers;
-            $this->update();
-            $this->evaluate();
+            $this->update_and_evaluate($data);
             if ($this->timefinished) {
                 // YAY! User finished the attempt, show feedback
                 $this->instantquiz->displaymode = instantquiz_instantquiz::DISPLAYMODE_NORMAL;
                 return $this;
+            } else {
+                redirect(new moodle_url($this->instantquiz->view_link()));
             }
         }
         return $form;

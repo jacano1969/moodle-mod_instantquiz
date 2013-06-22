@@ -57,6 +57,7 @@ class instantquiz_criterion extends instantquiz_entity {
         $defaultvalues->criterion = get_string('defcriterionname', 'mod_instantquiz', $defaultvalues->sortorder + 1);
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
+        $instantquiz->summary->entity_updated($entity);
         return $entity;
     }
 
@@ -96,5 +97,25 @@ class instantquiz_criterion extends instantquiz_entity {
             $record['instantquizid'] = $this->instantquiz->id;
             $this->id = $DB->insert_record($this->get_table_name(), $record);
         }
+    }
+
+    /**
+     * Given the number of points earned for each question by each criterion
+     * returns the total number of points for this criterion int the attempt
+     *
+     * This function is called from {@link instantquiz_attempt::update_and_evaluate()}
+     *
+     * @param instantquiz_attempt $attempt current attempt (it is not saved yet)
+     * @return int
+     */
+    public function get_total_points($attempt) {
+        $pointsbyquestion = $attempt->points['q'];
+        $rv = 0;
+        foreach ($pointsbyquestion as $qid => $points) {
+            if (!empty($points[$this->id])) {
+                $rv += $points[$this->id];
+            }
+        }
+        return $rv;
     }
 }

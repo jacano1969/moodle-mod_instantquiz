@@ -81,7 +81,19 @@ class instantquiz_summary implements renderable, IteratorAggregate {
         return $summary;
     }
 
-    public function entity_updated($entitytype, $oldvalue, $newvalue) {
+    /**
+     * Notifies that the entity is about to be updated
+     *
+     * This function is called prior to the actual 'update' in DB
+     * so it can query the current state if needed
+     *
+     * @param mixed $entity
+     * @param mixed $oldvalue may be an array of old values or an old entity, or null if the entity was just created
+     */
+    public function entity_updated($entity, $oldvalue = null) {
+        if ($this->summarycached === null) {
+            // The summary is already reset, no need to check anything
+        }
         // TODO some updates do not change stats or can be recalculated
         $this->reset();
     }

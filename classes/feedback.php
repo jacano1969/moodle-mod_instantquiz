@@ -58,6 +58,7 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
         $defaultvalues->feedback = get_string('deffeedback', 'mod_instantquiz', $defaultvalues->sortorder + 1);
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
+        $instantquiz->summary->entity_updated($entity);
         return $entity;
     }
 
@@ -103,10 +104,13 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
     /**
      * Evaluates if the points earned in the current attempt match this feedback display condition (formula)
      *
-     * @param array $points number of points for each criterion (indexed by criterion id)
+     * This function is called from {@link instantquiz_attempt::update_and_evaluate()}
+     *
+     * @param instantquiz_attempt $attempt current attempt (it is not saved yet)
      * @return bool
      */
-    public function is_applicable($points) {
+    public function is_applicable($attempt) {
+        $points = $attempt->points['c'];
         $formula = $this->addinfo['formula'];
         $criteria = $this->instantquiz->get_entities('criterion');
         foreach ($criteria as $critid => $criterion) {

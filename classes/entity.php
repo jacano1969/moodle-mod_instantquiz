@@ -65,6 +65,7 @@ abstract class instantquiz_entity implements renderable {
     public static function create($instantquiz) {
         $entity = new static($instantquiz, new stdClass());
         $entity->update();
+        $instantquiz->summary->entity_updated($entity);
         return $entity;
     }
 

@@ -323,7 +323,7 @@ class instantquiz_instantquiz {
     /**
      * Updates multiple entities with the results of the corresponding form
      *
-     * @param string $entitytype
+     * @param string $entitytype entity type - question, criterion, feedback
      * @param stdClass $data the data from moodleform::get_data(), see get_entity_edit_form_class()
      *    for a class name responsible for the entity edit form
      */
@@ -331,13 +331,20 @@ class instantquiz_instantquiz {
         $entities = $this->get_entities($entitytype);
         foreach ($entities as $id => &$entity) {
             if (!empty($data->entityid[$id])) {
+                $oldvalues = array();
                 // this entity could have beed modified
                 foreach ($data as $key => $subdata) {
                     if (is_array($subdata) && isset($subdata[$id]) && property_exists($entity, $key)) {
-                        $entity->$key = $subdata[$id];
+                        if ($entity->$key !== $subdata[$id]) {
+                            $oldvalues[$key] = $entity->$key;
+                            $entity->$key = $subdata[$id];
+                        }
                     }
                 }
-                $entity->update();
+                if (!empty($oldvalues)) {
+                    $entity->update();
+                    $this->summary->entity_updated($entity, $oldvalues);
+                }
             }
         }
     }

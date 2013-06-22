@@ -87,16 +87,32 @@ class instantquiz_question extends instantquiz_entity {
         $defaultvalues->questionformat = FORMAT_MOODLE;
         $entity = new static($instantquiz, $defaultvalues);
         $entity->update();
+        $instantquiz->summary->entity_updated($entity);
         return $entity;
+    }
+
+    /**
+     * Returns true if the sufficient answer is given or it is not required
+     *
+     * Called from {@link instantquiz_attempt::ready_to_evaluate()}
+     *
+     * @param stdClass $data data from the attempt form
+     * @param instantquiz_attempt $attempt current attempt (it is not saved yet)
+     */
+    public function is_answered($data, $attempt) {
+        return !empty($data->answers[$this->id]);
     }
 
     /**
      * Calculates the number of points earned for particular answer
      *
-     * @param mixed $answer answer stored for this question
+     * This function is called from {@link instantquiz_attempt::update_and_evaluate()}
+     *
+     * @param instantquiz_attempt $attempt current attempt (it is not saved yet)
      * @return array array of points earned, indexed by criterion id
      */
-    public function earned_points($answer) {
+    public function earned_points($attempt) {
+        $answer = $attempt->get_answer($this->id);
         if ($answer === null) {
             return array();
         }
