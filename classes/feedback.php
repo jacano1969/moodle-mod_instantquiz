@@ -111,6 +111,10 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
      */
     public function is_applicable($attempt) {
         $points = $attempt->points['c'];
+        if (!isset($this->addinfo['formula']) || !strlen(trim($this->addinfo['formula']))) {
+            // Empty formula means it is always applicable
+            return true;
+        }
         $formula = $this->addinfo['formula'];
         $criteria = $this->instantquiz->get_entities('criterion');
         foreach ($criteria as $critid => $criterion) {
@@ -118,7 +122,7 @@ class instantquiz_feedback extends instantquiz_entity implements renderable {
             $formula = preg_replace("/$xcriterion/i", $points[$critid], $formula);
         }
         // replace misspelled criteria with 0 points
-        $formula = preg_replace("/\$\{\}/i", 0, $formula);
+        $formula = preg_replace("/\$\{.*?\}/i", 0, $formula);
         // TODO check that $formula contains only allowed tokens. eval() is dangerous!
         return eval('return '.$formula.';');
     }

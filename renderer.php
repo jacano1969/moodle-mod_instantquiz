@@ -180,7 +180,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             if (!empty($entity->options)) {
                 $rv .= html_writer::start_tag('ul');
                 foreach ($entity->options as $option) {
-                    if (!empty($answer['options']) && in_array($option['idx'], $answer['options'])) {
+                    if (!empty($answer['options']) && array_key_exists($option['idx'], $answer['options'])) {
                         $rv .= html_writer::tag('li', $option['value']);
                     }
                 }
