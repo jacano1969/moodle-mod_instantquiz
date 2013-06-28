@@ -40,6 +40,7 @@ $string['summary'] = 'Summary';
 $string['summarybycriterion'] = 'By criterion';
 $string['summarybyfeedback'] = 'By feedback';
 $string['summarybyquestion'] = 'By question';
+$string['defaulttemplate'] = 'Default template';
 
 $string['attemptslimit'] = 'Limit number of attempts';
 $string['attemptslimit_help'] = 'Maximum number of times the user is allowed to answer the questions';

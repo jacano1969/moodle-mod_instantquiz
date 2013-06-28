@@ -76,21 +76,6 @@ function instantquiz_get_instantquiz($cm, $instantquizid = null) {
     return $instantquiz;
 }
 
-/**
- * Returns the list of template plugins and their names (for mod_form.php)
- *
- * @return array
- */
-function instantquiz_get_templates() {
-    $subplugins = get_plugin_list('instantquiztmpl');
-    $rv = array();
-    foreach ($subplugins as $pluginname => $dir) {
-        $fullname = 'instantquiztmpl_'. $pluginname;
-        $rv[$fullname] = get_string('pluginname', $fullname);
-    }
-    return $rv;
-}
-
 class instantquiz_collection implements renderable {
     var $object;
     public function __construct($object) {

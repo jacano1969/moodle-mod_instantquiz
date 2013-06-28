@@ -53,6 +53,21 @@ function instantquiz_supports($feature) {
 }
 
 /**
+ * Returns the list of template plugins and their names (for mod_form.php)
+ *
+ * @return array
+ */
+function instantquiz_get_templates() {
+    $subplugins = get_plugin_list('instantquiztmpl');
+    $rv = array();
+    foreach ($subplugins as $pluginname => $dir) {
+        $fullname = 'instantquiztmpl_'. $pluginname;
+        $rv[$fullname] = new lang_string('pluginname', $fullname);
+    }
+    return $rv;
+}
+
+/**
  * Saves a new instance of the instantquiz into the database
  *
  * Given an object containing all the necessary data,

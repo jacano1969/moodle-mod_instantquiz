@@ -64,15 +64,18 @@ class mod_instantquiz_mod_form extends moodleform_mod {
         //-------------------------------------------------------------------------------
 
         $mform->addElement('header', 'instantquiz', get_string('modulename', 'mod_instantquiz'));
+        $mform->setExpanded('instantquiz', true);
         $mform->addElement('select', 'template', get_string('subplugintype_instantquiztmpl', 'mod_instantquiz'), instantquiz_get_templates());
         if ($this->_cm) {
             $mform->hardFreeze('template');
         } else {
+            $mform->setDefault('template', get_config('instantquiz', 'defaulttemplate'));
             // button to update format-specific options on format change (will be hidden by JavaScript)
             $mform->registerNoSubmitButton('updatetemplate');
             $mform->addElement('submit', 'updatetemplate', get_string('update'), array('class' => 'hiddenifjs'));
         }
         $mform->addElement('hidden', 'addtemplateoptionshere');
+        $mform->setType('addtemplateoptionshere', PARAM_RAW);
 
         //-------------------------------------------------------------------------------
         // add standard elements, common to all modules
@@ -89,10 +92,12 @@ class mod_instantquiz_mod_form extends moodleform_mod {
      */
     public function data_preprocessing(&$default_values) {
         parent::data_preprocessing($default_values);
-        if (!empty($this->current) && preg_match('/^instantquiztmpl_/', $this->current->template)) {
+        if (!empty($this->current->template) && preg_match('/^instantquiztmpl_/', $this->current->template)) {
             $classname = $this->current->template. '_instantquiz';
-            $classname::edit_form_data_preprocessing($default_values);
+        } else {
+            $classname = get_config('instantquiz', 'defaulttemplate'). '_instantquiz';
         }
+        $classname::edit_form_data_preprocessing($default_values);
     }
 
     /**

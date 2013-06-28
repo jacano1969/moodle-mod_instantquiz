@@ -46,10 +46,13 @@ class instantquiz_question_form extends moodleform implements renderable {
         $mform = $this->_form;
         $this->entities = $this->_customdata;
         $mform->addElement('hidden', 'cmd', 'edit');
+        $mform->setType('cmd', PARAM_ALPHANUMEXT);
         $mform->addElement('hidden', 'entity', 'question');
+        $mform->setType('entity', PARAM_ALPHANUMEXT);
         $firstentity = reset($this->entities);
         $this->instantquiz = $firstentity->instantquiz;
         $mform->addElement('hidden', 'cmid', $this->instantquiz->get_cm()->id);
+        $mform->setType('cmid', PARAM_INT);
 
         $context = $this->instantquiz->get_context();
         $this->editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'maxbytes' => $CFG->maxbytes,
@@ -65,6 +68,7 @@ class instantquiz_question_form extends moodleform implements renderable {
         $cnt = 0;
         foreach ($this->entities as &$entity) {
             $mform->addElement('hidden', 'entityid['.$entity->id.']', 1);
+            $mform->setType('entityid['.$entity->id.']', PARAM_INT);
 
             $this->add_entity_elements($entity, $cnt++);
 
@@ -92,12 +96,14 @@ class instantquiz_question_form extends moodleform implements renderable {
         }
         $suffix = '['.$entity->id.']';
         $mform->addElement('hidden', 'sortorder'. $suffix);
+        $mform->setType('sortorder'. $suffix, PARAM_INT);
         $mform->addElement('editor','question_editor'. $suffix, get_string('question_preview', 'mod_instantquiz'), null, $this->editoroptions);
 
         $elementobjs = array();
         $elementobjs[] = $mform->createElement('text', 'value', '');
         $elementobjs[] = $mform->createElement('hidden', 'idx');
-        foreach ($this->instantquiz->get_entities('criterion') as $criterion) {
+        $criteria = $this->instantquiz->get_entities('criterion');
+        foreach ($criteria as $criterion) {
             $elementobjs[] = $mform->createElement('static', '','', $criterion->criterion);
             $elementobjs[] = $mform->createElement('text', 'points]['.$criterion->id, '', array('size' => 3));
         }
@@ -106,9 +112,16 @@ class instantquiz_question_form extends moodleform implements renderable {
 
         $group = $mform->createElement('group', 'options'. $suffix,
                     get_string('questionoption', 'mod_instantquiz'), $elementobjs);
-        $this->repeat_elements(array($group), count($entity->options), array(),
+        $repeats = $this->repeat_elements(array($group), count($entity->options), array(),
                 'repeathiddenname-'. $entity->id, 'addoption-'.$entity->id, 1,
                 get_string('questionaddoption', 'mod_instantquiz'), true);
+        for ($i = 0; $i < $repeats; $i++) {
+            $mform->setType('options'. $suffix. '['.$i.'][idx]', PARAM_INT);
+            $mform->setType('options'. $suffix. '['.$i.'][value]', PARAM_TEXT);
+            foreach ($criteria as $criterion) {
+                $mform->setType('options'. $suffix. '['.$i.'][points]['.$criterion->id.']', PARAM_FLOAT);
+            }
+        }
     }
 
     /*public function no_submit_button_pressed() {
@@ -170,14 +183,16 @@ class instantquiz_question_form extends moodleform implements renderable {
                     $el[$id] = $value;
                 }
             }
-            foreach ($data->options as $id => $options) {
-                // Remove options with empty value
-                foreach ($options as $key => $option) {
-                    if (!strlen(trim($option['value']))) {
-                        unset($data->options[$id][$key]);
+            if (!empty($data->options)) {
+                foreach ($data->options as $id => $options) {
+                    // Remove options with empty value
+                    foreach ($options as $key => $option) {
+                        if (!strlen(trim($option['value']))) {
+                            unset($data->options[$id][$key]);
+                        }
                     }
+                    $data->options[$id] = array_values($data->options[$id]);
                 }
-                $data->options[$id] = array_values($data->options[$id]);
             }
         }
         return $data;

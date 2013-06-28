@@ -42,10 +42,13 @@ class instantquiz_criterion_form extends moodleform implements renderable {
         $mform = $this->_form;
         $this->entities = $this->_customdata;
         $mform->addElement('hidden', 'cmd', 'edit');
+        $mform->setType('cmd', PARAM_ALPHANUMEXT);
         $mform->addElement('hidden', 'entity', 'criterion');
+        $mform->setType('entity', PARAM_ALPHANUMEXT);
         $firstentity = reset($this->entities);
         $this->instantquiz = $firstentity->instantquiz;
         $mform->addElement('hidden', 'cmid', $this->instantquiz->get_cm()->id);
+        $mform->setType('cmid', PARAM_INT);
 
         $data = array(
             'criterion' => array(),
@@ -54,8 +57,10 @@ class instantquiz_criterion_form extends moodleform implements renderable {
         foreach ($this->entities as &$entity) {
             $suffix = '['.$entity->id.']';
             $mform->addElement('hidden', 'entityid'. $suffix, 1);
+            $mform->setType('entityid'. $suffix, PARAM_INT);
 
             $mform->addElement('text','criterion'. $suffix, get_string('criterion_name', 'mod_instantquiz'));
+            $mform->setType('criterion'. $suffix, PARAM_TEXT);
             $mform->addRule('criterion'. $suffix, get_string('required'), 'required', null, 'client');
             $data['criterion'][$entity->id] = $entity->criterion;
         }

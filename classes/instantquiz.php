@@ -120,14 +120,14 @@ class instantquiz_instantquiz {
                 array('optional' => true));
         $mform->addHelpButton('addinfo_timeopen', 'timeopen', 'instantquiz');
         $mform->setType('addinfo_timeopen', PARAM_INT);
-        $mform->setDefault('addinfo_timeopen', time());
+        $mform->setDefault('addinfo_timeopen', null);
 
         $elements[] = $mform->addElement('date_time_selector', 'addinfo_timeclose',
                 get_string('timeclose', 'instantquiz'),
                 array('optional' => true));
         $mform->addHelpButton('addinfo_timeclose', 'timeclose', 'instantquiz');
         $mform->setType('addinfo_timeclose', PARAM_INT);
-        $mform->setDefault('addinfo_timeclose', time());
+        $mform->setDefault('addinfo_timeclose', null);
 
         //-------------------------------------------------------------------------------
         $elements[] = $mform->addElement('header', 'displayresulthdr', get_string('displayresult', 'instantquiz'));
@@ -140,7 +140,7 @@ class instantquiz_instantquiz {
                 array('optional' => true));
         $mform->addHelpButton('addinfo_resultmindate', 'resultmindate', 'instantquiz');
         $mform->setType('addinfo_resultmindate', PARAM_INT);
-        $mform->setDefault('addinfo_resultmindate', time());
+        $mform->setDefault('addinfo_resultmindate', null);
 
         $elements[] = $mform->addElement('text', 'addinfo_resultminanswers', get_string('resultminanswers', 'instantquiz'));
         $mform->addHelpButton('addinfo_resultminanswers', 'resultminanswers', 'instantquiz');

@@ -45,10 +45,13 @@ class instantquiz_feedback_form extends moodleform implements renderable {
         $mform = $this->_form;
         $this->entities = $this->_customdata;
         $mform->addElement('hidden', 'cmd', 'edit');
+        $mform->setType('cmd', PARAM_ALPHANUMEXT);
         $mform->addElement('hidden', 'entity', 'feedback');
+        $mform->setType('entity', PARAM_ALPHANUMEXT);
         $firstentity = reset($this->entities);
         $this->instantquiz = $firstentity->instantquiz;
         $mform->addElement('hidden', 'cmid', $this->instantquiz->get_cm()->id);
+        $mform->setType('cmid', PARAM_INT);
 
         $context = $this->instantquiz->get_context();
         $this->editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'maxbytes' => $CFG->maxbytes,
@@ -63,6 +66,7 @@ class instantquiz_feedback_form extends moodleform implements renderable {
         $cnt = 0;
         foreach ($this->entities as &$entity) {
             $mform->addElement('hidden', 'entityid['.$entity->id.']', 1);
+            $mform->setType('entityid['.$entity->id.']', PARAM_INT);
 
             $this->add_entity_elements($entity, $cnt++);
 
@@ -89,6 +93,7 @@ class instantquiz_feedback_form extends moodleform implements renderable {
         }
         $suffix = '['.$entity->id.']';
         $mform->addElement('hidden', 'sortorder'. $suffix);
+        $mform->setType('sortorder'. $suffix, PARAM_INT);
         $mform->addElement('editor','feedback_editor'. $suffix, get_string('feedback_preview', 'mod_instantquiz'), null, $this->editoroptions);
         static $criterialegend = false;
         if ($criterialegend === false) {
@@ -99,6 +104,7 @@ class instantquiz_feedback_form extends moodleform implements renderable {
         }
         if (!empty($criterialegend)) {
             $mform->addElement('text', 'addinfo'.$suffix.'[formula]', 'Formula', array('size' => 60));
+            $mform->setType('addinfo'.$suffix.'[formula]', PARAM_RAW);
             $mform->addElement('static', '', '', $criterialegend);
         } else {
             $mform->addElement('hidden', 'addinfo'.$suffix.'[formula]');

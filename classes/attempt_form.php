@@ -45,11 +45,15 @@ class instantquiz_attempt_form extends moodleform implements renderable {
         $mform = $this->_form;
         $this->attempt = $this->_customdata;
         $mform->addElement('hidden', 'cmd', 'continueattempt');
+        $mform->setType('cmd', PARAM_ALPHANUMEXT);
         $mform->addElement('hidden', 'entity', 'attempt');
+        $mform->setType('entity', PARAM_ALPHANUMEXT);
         $mform->addElement('hidden', 'attemptid', $this->attempt->id);
+        $mform->setType('attemptid', PARAM_INT);
 
         $this->instantquiz = $this->attempt->instantquiz;
         $mform->addElement('hidden', 'cmid', $this->instantquiz->get_cm()->id);
+        $mform->setType('cmid', PARAM_INT);
 
         //$context = $this->instantquiz->get_context();
         //$this->editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'maxbytes' => $CFG->maxbytes,
