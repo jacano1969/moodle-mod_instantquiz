@@ -128,7 +128,7 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $rv = $entity->get_formatted_feedback(array(), true). ' : ';
             $rv .= $summary->feedbacks;
             if ($summary->totalcount) {
-                $rv .= ' = '. sprintf("%d", $summary->feedbacks/$summary->totalcount*100). '%';
+                $rv .= ' = '. format_float($summary->feedbacks/$summary->totalcount*100, 0). '%';
             }
         }
         return $this->render_instantquiz_entity($entity, $rv);
@@ -151,9 +151,9 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
             $summary = $entity->instantquiz->summary->by_criterion($entity);
             $rv = $entity->criterion. ' : ';
             if ($summary->totalcount) {
-                $rv .= sprintf("%.2f", $summary->points/$summary->totalcount). ' / '. $summary->maxpoints;
+                $rv .= format_float($summary->points/$summary->totalcount, 2). ' / '. $summary->maxpoints;
                 if ($summary->maxpoints) {
-                    $rv .= ' = '. sprintf("%d", $summary->points/$summary->totalcount/$summary->maxpoints*100). '%';
+                    $rv .= ' = '. format_float($summary->points/$summary->totalcount/$summary->maxpoints*100, 0). '%';
                 }
             } else {
                 $rv .= '- / '. $summary->maxpoints;
@@ -208,9 +208,9 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 $rv .= html_writer::start_tag('li');
                 $rv .= $criterion->criterion. ' : ';
                 if ($summary->totalcount) {
-                    $rv .= sprintf("%.2f", $summary->points[$criterion->id]/$summary->totalcount). ' / '. $summary->maxpoints[$criterion->id];
+                    $rv .= format_float($summary->points[$criterion->id]/$summary->totalcount, 2). ' / '. $summary->maxpoints[$criterion->id];
                     if ($summary->maxpoints[$criterion->id]) {
-                        $rv .= ' = '. sprintf("%d", $summary->points[$criterion->id]/$summary->totalcount/$summary->maxpoints[$criterion->id]*100). '%';
+                        $rv .= ' = '. format_float($summary->points[$criterion->id]/$summary->totalcount/$summary->maxpoints[$criterion->id]*100, 0). '%';
                     }
                 } else {
                     $rv .= '- / '. $summary->maxpoints[$criterion->id];
