@@ -95,7 +95,6 @@ class instantquiz_summary implements renderable, IteratorAggregate {
         foreach ($questions as &$question) {
             $summary['points']['q'][$question->id] = array();
             $maxpoints = $question->max_possible_points();
-            $summary['answers'][$question->id] = array();
             foreach ($criteria as &$criterion) {
                 $summary['points']['q'][$question->id][$criterion->id] = 0;
                 $summary['maxpoints']['q'][$question->id][$criterion->id] = 0;
@@ -104,13 +103,19 @@ class instantquiz_summary implements renderable, IteratorAggregate {
                     $summary['maxpoints']['c'][$criterion->id] += $maxpoints[$criterion->id];
                 }
             }
+            foreach ($attempts as &$attempt) {
+                $answers = $question->get_answers_for_summary($attempt);
+                if (!empty($answers)) {
+                    if (!isset($summary['answers'][$question->id])) {
+                        $summary['answers'][$question->id] = array();
+                    }
+                    $summary['answers'][$question->id][] = $answers;
+                }
+            }
         }
         foreach ($attempts as &$attempt) {
             foreach ($attempt->feedbacks as $fid) {
                 $summary['feedbacks'][$fid] = empty($summary['feedbacks'][$fid]) ? 1 : ($summary['feedbacks'][$fid]+1);
-            }
-            foreach ($attempt->answers as $qid => $answer) {
-                $summary['answers'][$qid][] = $answer;
             }
             foreach ($attempt->points['c'] as $cid => $points) {
                 if (!isset($summary['points']['c'][$cid])) { $summary['points']['c'][$cid] = 0; }

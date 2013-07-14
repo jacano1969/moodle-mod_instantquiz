@@ -62,7 +62,7 @@ class instantquiz_question_form extends moodleform implements renderable {
             'question_editor' => array(),
             'options' => array(),
             'sortorder' => array(),
-            //'addinfo' => array()
+            'addinfo' => array()
         );
 
         $cnt = 0;
@@ -76,7 +76,7 @@ class instantquiz_question_form extends moodleform implements renderable {
             $data['question_editor'][$entity->id] = $tmpdata->question_editor;
             $data['options'][$entity->id] = $entity->options;
             $data['sortorder'][$entity->id] = $entity->sortorder;
-            // $data['addinfo'][$entity->id] = $entity->addinfo;
+            $data['addinfo'][$entity->id] = $entity->addinfo + array('minoptions' => 1, 'maxoptions' => 1);
         }
 
         $this->add_action_buttons(true, get_string('savechanges'));
@@ -122,6 +122,52 @@ class instantquiz_question_form extends moodleform implements renderable {
                 $mform->setType('options'. $suffix. '['.$i.'][points]['.$criterion->id.']', PARAM_FLOAT);
             }
         }
+
+        // Add options limits (minoptions, maxoptions).
+        if ($repeats > 1) {
+            $elementobjs = array();
+            $str = get_string('optionslimit', 'mod_instantquiz').'{$a->minoptions}'.'{$a->maxoptions}';
+            $minoptionsset = $maxoptionsset = false;
+            $chunks = preg_split('/(\{\$a->m\w\woptions\})/', $str, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            foreach ($chunks as $chunk) {
+                if ($chunk === '{$a->minoptions}') {
+                    if (!$minoptionsset) {
+                        $elementobjs[] = $mform->createElement('select', 'addinfo'. $suffix. '[minoptions]', '', range(0, $repeats - 1));
+                        $minoptionsset = true;
+                    }
+                } else if ($chunk === '{$a->maxoptions}') {
+                    if (!$maxoptionsset) {
+                        $elementobjs[] = $mform->createElement('select', 'addinfo'. $suffix. '[maxoptions]', '',
+                            array_combine(range(1, $repeats), range(1, $repeats)));
+                        $maxoptionsset = true;
+                    }
+                } else {
+                    $elementobjs[] = $mform->createElement('static', '','', $chunk);
+                }
+            }
+            $mform->addElement('group', '', '', $elementobjs, '', false);
+            $mform->setType('addinfo'. $suffix. '[minoptions]', PARAM_INT);
+            $mform->setType('addinfo'. $suffix. '[maxoptions]', PARAM_INT);
+        }
+
+        $commentoptions = array();
+        $commentoptions[0] = get_string('commentnone', 'mod_instantquiz');
+        $commentoptions[instantquiz_question::COMMENT_ALLOWED | instantquiz_question::COMMENT_IN_SUMMARY |
+                instantquiz_question::COMMENT_NAME_IN_SUMMARY] =
+                get_string('commentpublic', 'mod_instantquiz');
+        $commentoptions[instantquiz_question::COMMENT_ALLOWED | instantquiz_question::COMMENT_IN_SUMMARY] =
+                get_string('commentanonymous', 'mod_instantquiz');
+        $commentoptions[instantquiz_question::COMMENT_ALLOWED] =
+                get_string('commentprivate', 'mod_instantquiz');
+        $elementobjs = array();
+        $elementobjs[] = $mform->createElement('select', 'addinfo'. $suffix. '[comment]', '', $commentoptions);
+        $elementobjs[] = $mform->createElement('select', 'addinfo'. $suffix. '[commentrequired]', '',
+                array(0 => get_string('commentoptional', 'mod_instantquiz'),
+                    1 => get_string('commentrequired', 'mod_instantquiz')));
+        $mform->addElement('group', '', get_string('comment', 'mod_instantquiz'), $elementobjs, ' ', false);
+        $mform->disabledIf('addinfo'. $suffix. '[commentrequired]', 'addinfo'. $suffix. '[comment]', 'eq', 0);
+        $mform->setType('addinfo'. $suffix. '[comment]', PARAM_INT);
+        $mform->setType('addinfo'. $suffix. '[commentrequired]', PARAM_INT);
     }
 
     /*public function no_submit_button_pressed() {

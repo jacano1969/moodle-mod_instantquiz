@@ -39,6 +39,10 @@ class instantquiz_question extends instantquiz_entity {
     protected $lastmaxoptionidx;
     public $currentanswer;
 
+    const COMMENT_ALLOWED = 1;
+    const COMMENT_IN_SUMMARY = 2;
+    const COMMENT_NAME_IN_SUMMARY = 4;
+
     /**
      * Returns the name of DB table (used in functions get_all() and update() )
      *
@@ -96,11 +100,60 @@ class instantquiz_question extends instantquiz_entity {
      *
      * Called from {@link instantquiz_attempt::ready_to_evaluate()}
      *
-     * @param stdClass $data data from the attempt form
+     * @param stdClass|array $data data from the attempt form
      * @param instantquiz_attempt $attempt current attempt (it is not saved yet)
      */
-    public function is_answered($data, $attempt) {
-        return !empty($data->answers[$this->id]);
+    public function is_answered($data, $attempt, &$errors) {
+        if (is_object($data) && isset($data->answers[$this->id])) {
+            $answer = $data->answers[$this->id];
+        } else if (is_array($data) && isset($data['answers'][$this->id])) {
+            $answer = $data['answers'][$this->id];
+        } else {
+            $answer = array();
+        }
+        if (isset($this->addinfo['minoptions']) && isset($this->addinfo['maxoptions']) &&
+                        $this->addinfo['maxoptions'] > $this->addinfo['minoptions']) {
+            // Checkbox options.
+            $answer = $answer + array('options' => array());
+            if ($this->addinfo['minoptions'] > 0 && count($answer['options']) < $this->addinfo['minoptions']) {
+                $errors['answers['. $this->id.']'] =
+                        get_string('errorminoptions', 'mod_instantquiz', $this->addinfo['minoptions']);
+            } else if (count($answer['options']) > $this->addinfo['maxoptions']) {
+                $errors['answers['. $this->id.']'] =
+                        get_string('errormaxoptions', 'mod_instantquiz', $this->addinfo['maxoptions']);
+            }
+        } else if (empty($answer['option'])) {
+            // Radio option.
+            $errors['answers['. $this->id.']'] = get_string('erroroption', 'mod_instantquiz');
+        }
+        if (!empty($this->addinfo['comment']) && $this->addinfo['comment'] & self::COMMENT_ALLOWED
+                && !empty($this->addinfo['commentrequired']) && empty($answer['comment']) &&
+                !strlen(trim($answer['comment']))) {
+            $errors['answers['. $this->id.'][comment]'] = get_string('errorcommentrequired', 'mod_instantquiz');
+        }
+        return !isset($errors['answers['. $this->id.']']) && !isset($errors['answers['. $this->id.'][comment]']);
+    }
+
+    /**
+     * Returns the data to be added to the summary.
+     *
+     * If the return value is not empty, it will be accessible from the summary
+     * object as one of the elements in array: $summary->answers[question->id]
+     *
+     * @param instantquiz_attempt $attempt
+     * @return mixed
+     */
+    public function get_answers_for_summary($attempt) {
+        $rv = array();
+        if (!empty($this->addinfo['comment']) && $this->addinfo['comment'] & self::COMMENT_ALLOWED
+                && $this->addinfo['comment'] & self::COMMENT_IN_SUMMARY &&
+                !empty($attempt->answers[$this->id]['comment'])) {
+            $rv['comment'] = $attempt->answers[$this->id]['comment'];
+            if ($this->addinfo['comment'] & self::COMMENT_NAME_IN_SUMMARY) {
+                $rv['userid'] = $attempt->userid;
+            }
+        }
+        return $rv;
     }
 
     /**

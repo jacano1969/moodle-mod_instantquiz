@@ -320,8 +320,9 @@ class instantquiz_attempt extends instantquiz_entity {
     protected function ready_to_evaluate($data) {
         $questions = $this->instantquiz->get_entities('question');
         $rv = true;
+        $errors = array();
         foreach ($questions as $id => $question) {
-            if (!$question->is_answered($data, $this)) {
+            if (!$question->is_answered($data, $this, $errors)) {
                 $rv = false;
             }
         }

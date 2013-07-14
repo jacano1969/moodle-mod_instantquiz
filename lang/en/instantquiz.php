@@ -86,3 +86,17 @@ $string['instantquiz:addinstance'] = 'Add a new instantquiz';
 $string['attempttimedout'] = 'The submission is overdue';
 $string['attemptslimitreached'] = 'You are only allowed to submit {$a} times';
 $string['cannotviewsummary'] = 'You are not allowed to view summary';
+
+$string['optionslimit'] = 'User must select at least {$a->minoptions} and at most {$a->maxoptions} options';
+$string['errorminoptions'] = 'Please select at least {$a} option(s)';
+$string['errormaxoptions'] = 'Please select no more than {$a} option(s)';
+$string['erroroption'] = 'Please select an option';
+
+$string['comment'] = 'Comment';
+$string['commentnone'] = 'No comment';
+$string['commentpublic'] = 'Public comment';
+$string['commentanonymous'] = 'Anonymous comment';
+$string['commentprivate'] = 'Private comment';
+$string['commentoptional'] = 'optional';
+$string['commentrequired'] = 'required';
+$string['errorcommentrequired'] = 'Comment is required';

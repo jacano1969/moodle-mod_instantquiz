@@ -61,20 +61,33 @@ class instantquiz_attempt_form extends moodleform implements renderable {
 
         $renderer = $this->instantquiz->get_renderer();
         foreach ($this->instantquiz->get_entities('question') as $question) {
-            $mform->addElement('static', '', '', $renderer->render($question)); // TODO format
+            // Placing the question text in a group allows to assign id to the form element.
+            $elements = array();
+            $elements[] = $mform->createElement('static', '', null, $renderer->render($question));
+            $mform->addElement('group', 'question['.$question->id.']', null, $elements);
 
             if (!empty($question->options)) {
-                /* Option 1: Display as radio elements */
-                $elementobjs = array();
-                foreach ($question->options as $option) {
-                    $elementobjs[] = $mform->createElement('radio', $question->id.'][option', '', $option['value'], (int)$option['idx']);
+                if (isset($question->addinfo['minoptions']) && isset($question->addinfo['maxoptions']) &&
+                        $question->addinfo['maxoptions'] > $question->addinfo['minoptions']) {
+                    // Display as checkboxes
+                    $elementobjs = array();
+                    foreach ($question->options as $option) {
+                        $elementobjs[] = $mform->createElement('checkbox', 'options]['.$option['idx'], '',
+                                $option['value'], (int)$option['idx']);
+                    }
+                    $mform->addElement('group', 'answers['.$question->id.']', '', $elementobjs, '<br/>');
+                } else {
+                    // Display as radio elements
+                    $elementobjs = array();
+                    foreach ($question->options as $option) {
+                        $elementobjs[] = $mform->createElement('radio', 'option', '', $option['value'], (int)$option['idx']);
+                    }
+                    $mform->addElement('group', 'answers['.$question->id.']', '', $elementobjs);
                 }
-                $mform->addElement('group', 'answers', '', $elementobjs);
+            }
 
-                /* Option 2: Display as checkboxes */
-                /*foreach ($question->options as $option) {
-                    $mform->addElement('advcheckbox', 'answers['.$question->id.'][options]['.$option['idx'].']', '', $option['value'], (int)$option['idx']);
-                }*/
+            if (!empty($question->addinfo['comment'])) {
+                $mform->addElement('textarea', 'answers['.$question->id.'][comment]', '');
             }
         }
 
@@ -97,6 +110,9 @@ class instantquiz_attempt_form extends moodleform implements renderable {
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+        foreach ($this->instantquiz->get_entities('question') as $question) {
+            $question->is_answered($data, null, $errors);
+        }
         return $errors;
     }
 

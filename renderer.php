@@ -218,15 +218,20 @@ class mod_instantquiz_renderer extends plugin_renderer_base {
                 $rv .= html_writer::end_tag('li');
             }
             $rv .= html_writer::end_tag('ul');
-            /*
-            if (!empty($entity->options)) {
-                $lines = array();
-                foreach ($entity->options as $option) {
-                    $lines[] = html_writer::tag('li', $option['value']);
+            // Comments.
+            if (!empty($summary->answers)) {
+                $rv .= html_writer::tag('p', 'Comments'); // TODO
+                $rv .= html_writer::start_tag('ul');
+                foreach ($summary->answers as $answer) {
+                    $rv .= html_writer::start_tag('li');
+                    if (!empty($answer['userid'])) {
+                        $rv .= 'User '. $answer['userid']. '<br />'; // TODO username
+                    }
+                    $rv .= $answer['comment'];
+                    $rv .= html_writer::end_tag('li');
                 }
-                $rv .= html_writer::tag('ul', join('', $lines));
+                $rv .= html_writer::end_tag('ul');
             }
-             */
         }
         return $this->render_instantquiz_entity($entity, $rv);
     }
